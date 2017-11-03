@@ -1,0 +1,7 @@
+Send everything in 16byte blocks to make it easier to transfer to AES128/256
+
+Due to padding, the length of the ciphertext may be longer than the original plaintext - figure this out
+
+Challenge response: send random number -> concatentate key with received number and hash result -> concatenate key with generated number and hash, then compare result to received result from client
+
+File must be sent incrementally via stdin so as not to fill up RAM. To check if there is enough disk space, simply check for write errors on the server.

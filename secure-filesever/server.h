@@ -23,6 +23,7 @@ class server
         int authenticate_client(); 
 
     private:
+        char password[256];
         int sockfd;
         int clientsockfd;
         int portno;

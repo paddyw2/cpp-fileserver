@@ -14,6 +14,12 @@ server::server(int argc, char * argv[])
         exit(1);
     }
 
+    // set sever password
+    bzero(password, 256);
+    cout << "Set the server password: ";
+    cin >> password;
+    cout << "Password: " << password << endl;
+
     // create client socket and check for errors
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 

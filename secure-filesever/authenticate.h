@@ -1,5 +1,5 @@
 #include <openssl/rand.h>
-#include <openssl/sha.h>
+#include "encryption.h"
 
 #define BLOCKSIZE 16
 #define DIGESTSIZE 32
@@ -38,28 +38,11 @@ int server::authenticate_client()
     memcpy(concat+strlen(password), tmp_chal, strlen(tmp_chal));
     // calcualte hash of concatenation
     unsigned char digest[DIGESTSIZE];
-    get_SHA256((unsigned char *)concat, strlen(concat), digest);
+    encryption encryptor;
+    encryptor.get_SHA256((unsigned char *)concat, strlen(concat), digest);
     for(int i=0; i<DIGESTSIZE;i++)
         printf("%x", digest[i]);
     printf("\n");
-
-    return 0;
-}
-
-/*
- * Calculates SHA256 hash
- */
-int server::get_SHA256(void* input, unsigned long length, unsigned char* md)
-{
-    SHA256_CTX context;
-    if(!SHA256_Init(&context))
-        return 1;
-
-    if(!SHA256_Update(&context, (unsigned char*)input, length))
-        return 1;
-
-    if(!SHA256_Final(md, &context))
-        return 1;
 
     return 0;
 }

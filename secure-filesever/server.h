@@ -21,7 +21,6 @@ class server
         int write_to_client(char * message, int length, int client);
         int read_from_client(char * message, int length, int client);
         int authenticate_client(); 
-        int get_SHA256(void* input, unsigned long length, unsigned char* md);
 
     private:
         int sockfd;

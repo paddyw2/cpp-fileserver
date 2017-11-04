@@ -1,7 +1,7 @@
 #include "server.h"
 
-int main()
+int main(int argc, char * argv[])
 {
-    server fileserver;
+    server fileserver(argc, argv);
     return 0;
 }

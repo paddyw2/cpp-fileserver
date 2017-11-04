@@ -1,4 +1,5 @@
 #include "server.h"
+#include "authenticate.h"
 
 /*
  * Constructor
@@ -54,6 +55,56 @@ server::server(int argc, char * argv[])
     // start listening for connections on the
     // created socket
     listen(sockfd,5);
+}
+
+int server::start_server()
+{
+    socklen_t clilen = sizeof(cli_addr);
+    while(1) {
+        cout << "Waiting for client connection..." << endl;
+        clientsockfd = accept(sockfd, (struct sockaddr *) &cli_addr,&clilen);
+        // error check
+        if (clientsockfd < 0)
+           error("ERROR on accept");
+
+        cout << "Got one!" << endl;
+        char welcome[] = "Welcome to the server, type 'help' for "
+                         "a list of commands\n";
+        write_to_client(welcome, strlen(welcome), clientsockfd);
+        authenticate_client();
+        close(clientsockfd);
+    }
+    return 0;
+}
+
+
+/*
+ * Writes to client socket and checks
+ * for errors
+ */
+int server::write_to_client(char * message, int length, int client)
+{
+    int error_flag;
+    error_flag = write(client, message, length);
+    // error check
+    if (error_flag < 0)
+        error("ERROR writing to socket");
+    return 0;
+}
+
+/*
+ * Reads from client socket and checks
+ * for errors
+ */
+int server::read_from_client(char * message, int length, int client)
+{
+    int error_flag;
+    error_flag = read(client, message, length);
+    //strip_newline((char *)message, length);
+    // error check
+    if (error_flag < 0)
+        error("ERROR reading from socket");
+    return error_flag;
 }
 
 /*

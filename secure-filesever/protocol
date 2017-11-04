@@ -1,0 +1,19 @@
+Basic protocol:
+
+When a client connects, the server must wait for message.
+
+This message is of the form:
+
+----> CIPHER, NONCE
+
+When the server receives this message, it generates a random number and sends it to the client:
+
+<---- RAND_NUM
+
+The client then concatentates their plaintext password and the number, and SHA256 it, return value:
+
+----> SHA256(pword+rand)
+
+The server then computes the same to see if it matches. If not, terminate. Else encrypt success message with cipher and send back to client
+
+<---- ENCRYPT(success!)

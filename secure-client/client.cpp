@@ -53,7 +53,7 @@ int client::receive_challenge()
     // get random challenge
     char * rand_value = (char *) calloc(128, sizeof(char));
     int size = read_from_client(rand_value, 128);
-    
+   
     // concatenate password with challenge
     char * concat = (char *) calloc(size + strlen(password), sizeof(char));
     memcpy(concat, password, strlen(password));
@@ -65,6 +65,7 @@ int client::receive_challenge()
     encryptor.get_SHA256((unsigned char *)concat, size+strlen(password), digest);
     free(concat);
     free(rand_value);
+    cout << "Generated hash: ";
     for(int i=0;i<DIGESTSIZE;i++) {
         printf("%0.2x", digest[i]);
     }

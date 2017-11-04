@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+#define DIGESTSIZE 32
+
 using namespace std;
 
 class client
@@ -23,5 +25,6 @@ class client
         int write_to_client(char * message, int length);
     private:
         int clientsocket;
+        char password[256];
 
 };

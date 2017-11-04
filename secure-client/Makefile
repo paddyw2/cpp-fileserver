@@ -1,2 +1,2 @@
 make:
-	g++ -o client *.cpp
+	g++ -o client *.cpp -lcrypto

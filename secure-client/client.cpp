@@ -1,4 +1,5 @@
 #include "client.h"
+#include "encryption.h"
 
 /*
  * Constructor
@@ -6,13 +7,16 @@
  */
 client::client(int argc, char * argv[])
 {
-    if(argc < 3)
+    if(argc < 4)
         error("Not enough arguments\n");
     // get remote connection info
     char * hostname = argv[1];
     int port = atoi(argv[2]);
+    bzero(password, 256);
+    memcpy(password, argv[3], 256);
     cout << "Host: " << hostname << endl;
     cout << "Port: " << port << endl;
+    cout << "Password: " << password << endl;
 
     struct sockaddr_in dest_addr;
     int error_flag;
@@ -46,9 +50,29 @@ int client::send_cipher_nonce()
 
 int client::receive_challenge()
 {
-    char * rand_value = (char *) calloc(64, sizeof(char));
-    int size = read_from_client(rand_value, 64);
-    cout << rand_value << endl;
+    // get random challenge
+    char * rand_value = (char *) calloc(128, sizeof(char));
+    int size = read_from_client(rand_value, 128);
+    
+    // concatenate password with challenge
+    char * concat = (char *) calloc(size + strlen(password), sizeof(char));
+    memcpy(concat, password, strlen(password));
+    memcpy(concat+strlen(password), rand_value, size);
+
+    // calcualte hash of concatenation
+    unsigned char digest[DIGESTSIZE];
+    encryption encryptor;
+    encryptor.get_SHA256((unsigned char *)concat, size+strlen(password), digest);
+    free(concat);
+    free(rand_value);
+    for(int i=0;i<DIGESTSIZE;i++) {
+        printf("%0.2x", digest[i]);
+    }
+    printf("\n");
+
+    // send back to server
+    write_to_client((char *)digest, DIGESTSIZE);
+
     return 0;
 }
 

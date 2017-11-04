@@ -74,9 +74,6 @@ int server::start_server()
            error("ERROR on accept");
 
         cout << "Got one!" << endl;
-        char welcome[] = "Welcome to the server, type 'help' for "
-                         "a list of commands\n";
-        write_to_client(welcome, strlen(welcome), clientsockfd);
         authenticate_client();
         close(clientsockfd);
     }

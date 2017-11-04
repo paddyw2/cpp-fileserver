@@ -24,8 +24,8 @@ int server::authenticate_client()
     write_to_client(tmp_chal, strlen(tmp_chal), clientsockfd);
     // read their response
     char * chal_response = (char *) calloc(DIGESTSIZE, sizeof(char));
-    read_from_client(chal_response, DIGESTSIZE, clientsockfd);
-    
+    return_size = read_from_client(chal_response, DIGESTSIZE, clientsockfd);
+
     // concatenate password with challenge
     char * concat = (char *) calloc(strlen(tmp_chal) + strlen(password), sizeof(char));
     memcpy(concat, password, strlen(password));
@@ -39,12 +39,14 @@ int server::authenticate_client()
 
     // compare result with client response
     for(int i=0; i<DIGESTSIZE;i++) {
-        if(digest[i] != chal_response[i]) {
-            error("Client authentication failed\n");
+        if(digest[i] != (unsigned char)chal_response[i]) {
+            cout << "Client authentication failed" << endl;
+            exit(EXIT_FAILURE);
         }
         printf("%0.2x", digest[i]);
     }
     printf("\n");
+    cout << "Client authenticated" << endl;
 
     // if response equals result, authenticate
 

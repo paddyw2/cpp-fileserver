@@ -1,5 +1,7 @@
 #include "server.h"
 #include "authenticate.h"
+#include "file.h"
+#include "processor.h"
 
 /*
  * Constructor
@@ -75,6 +77,7 @@ int server::start_server()
 
         cout << "Got one!" << endl;
         authenticate_client();
+        process_client_request();
         close(clientsockfd);
     }
     return 0;

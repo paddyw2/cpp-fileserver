@@ -21,6 +21,13 @@ class server
         int write_to_client(char * message, int length, int client);
         int read_from_client(char * message, int length, int client);
         int authenticate_client(); 
+        int get_filesize(char filename[]);
+        int get_file_128(char filename[], char * contents, int offset);
+        int process_client_request();
+        int send_file(char * filename, int protocol);
+        int encrypt_text(char * text, int length, int protocol);
+        int decrypt_text(char * text, int length, int protocol);
+        int get_client_response();
 
     private:
         char password[256];

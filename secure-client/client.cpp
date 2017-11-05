@@ -74,6 +74,31 @@ int client::receive_challenge()
     // send back to server
     write_to_client((char *)digest, DIGESTSIZE);
 
+    // get response
+    get_server_response();
+
+    char message[] = "give me that file";
+    write_to_client(message, 30);
+
+    get_server_response();
+
+
+    printf("\n");
+   return 0;
+}
+
+int client::get_server_response()
+{
+    cout << "Receiving..." << endl;
+    int return_size = 1;
+    while(return_size != 0) {
+        char * response = (char *)malloc(16);
+        return_size = read_from_client(response, 16);
+        for(int i=0;i<return_size;i++) {
+            printf("%c", response[i]);
+        }
+        free(response);
+    }
     return 0;
 }
 

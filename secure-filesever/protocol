@@ -17,3 +17,4 @@ The client then concatentates their plaintext password and the number, and SHA25
 The server then computes the same to see if it matches. If not, terminate. Else encrypt success message with cipher and send back to client
 
 <---- ENCRYPT(success!)
+

@@ -23,6 +23,7 @@ class client
         int receive_challenge();
         int read_from_client(char * message, int length);
         int write_to_client(char * message, int length);
+        int get_client_response();
     private:
         int clientsocket;
         char password[256];

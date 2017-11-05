@@ -23,16 +23,19 @@ class server
         int authenticate_client(); 
         int get_filesize(char filename[]);
         int get_file_128(char filename[], char * contents, int offset);
+        int write_file(char filename[], char * contents, int length);
         int process_client_request();
         int send_file(char * filename, int protocol);
+        int get_file(char * filename, int protocol);
         int encrypt_text(char * text, int length, int protocol);
         int decrypt_text(char * text, int length, int protocol);
-        int get_client_response();
+        int get_client_file_response();
+        int check_response_ready();
 
     private:
         char password[256];
         int sockfd;
-        int clientsockfd;
+        int clientsocket;
         int portno;
         int destport;
         char * serverurl;

@@ -7,7 +7,7 @@
 int server::authenticate_client()
 {
     char * cipher_nonce = (char *) calloc(128, sizeof(char));
-    int return_size = read_from_client(cipher_nonce, 128, clientsockfd);
+    int return_size = read_from_client(cipher_nonce, 128, clientsocket);
     cout << "Chosen cipher: " << cipher_nonce << endl;
     free(cipher_nonce);
 
@@ -23,10 +23,10 @@ int server::authenticate_client()
     //char tmp_chal[] = "winter!";
     //rand_challenge = (unsigned char *)tmp_chal;
     //rand_size = strlen(tmp_chal);
-    write_to_client((char *)rand_challenge, rand_size, clientsockfd);
+    write_to_client((char *)rand_challenge, rand_size, clientsocket);
     // read their response
     char * chal_response = (char *) calloc(DIGESTSIZE, sizeof(char));
-    return_size = read_from_client(chal_response, DIGESTSIZE, clientsockfd);
+    return_size = read_from_client(chal_response, DIGESTSIZE, clientsocket);
 
     // concatenate password with challenge
     char * concat = (char *) calloc(rand_size + strlen(password), sizeof(char));

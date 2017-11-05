@@ -1,34 +1,87 @@
 int server::process_client_request()
 {
     int protocol = 0;
-    char success[] = "Success";
+    char success[] = "You are authed\n";
     int length = encrypt_text(success, strlen(success), protocol);
-    cout << "Sending..." << endl;
-    write_to_client(success, length, clientsockfd);
+    cout << "Sending success..." << endl;
+    write_to_client(success, length, clientsocket);
     // now read response
-    get_client_response();
-    // process response (assume file request)
-    char filename[] = "test.txt";
-    send_file(filename, protocol);
+    char * response = (char *)malloc(128);
+    length = read_from_client(response, 128, clientsocket);
+    length = decrypt_text(response, length, 0);
+    // get filename
+    char filename[length];
+    bzero(filename, length);
+    // check read or write
+    if(strncmp(response, "read ", strlen("read ")) == 0) {
+        memcpy(filename, response+strlen("read "), length - strlen("read ")-1); // -1 for netcat newline
+        cout << filename << endl;
+        char message[] = "You have chosen: read\n";
+        length = encrypt_text(message, strlen(message), 0);
+        write_to_client(message, length, clientsocket);
+        send_file(filename, protocol);
+    } else if(strncmp(response, "write ", strlen("write ")) == 0) {
+        memcpy(filename, response+strlen("write "), length - strlen("write ")-1); // -1 for netcat newline
+        char message[] = "You have chosen: write\n";
+        length = encrypt_text(message, strlen(message), 0);
+        write_to_client(message, length, clientsocket);
+        get_file(filename, protocol);
+    } else {
+        char message[] = "You have chosen: ERROR\n";
+        length = encrypt_text(message, strlen(message), 0);
+        write_to_client(message, length, clientsocket);
+        error("Bad protocol message received\n");
+    }
     return 0;
 }
 
 int server::send_file(char * filename, int protocol)
 {
+    cout << "Sending file..." << endl;
     int file_size = get_filesize(filename);
     int total_read = 0;
     while(total_read < file_size) {
         char * file_contents = (char *) malloc(16);
         int read = get_file_128(filename, file_contents, total_read);
         int length = encrypt_text(file_contents, read, protocol);
-        write_to_client(file_contents, length, clientsockfd);
+        write_to_client(file_contents, length, clientsocket);
         total_read += read;
         free(file_contents);
+    }
+    write_to_client(NULL, 0, clientsocket);
+    return 0;
+}
+
+int server::get_file(char * filename, int protocol)
+{
+    cout << "Receiving file..." << endl;
+    int return_size = 1;
+    int total_written = 0;
+    while(return_size != 0) {
+        char * response = (char *)malloc(16);
+        return_size = read_from_client(response, 16, clientsocket);
+        int length = decrypt_text(response, return_size, 0);
+        length = write_file(filename, response, length);
+        total_written += length;
+        free(response);
     }
     return 0;
 }
 
 int server::encrypt_text(char * text, int length, int protocol)
+{
+    if(protocol == 0) {
+        // no encryption, print for logging purposes
+        printf("\n--> ");
+        for(int i=0;i<length;i++) {
+            printf("%c", text[i]);
+        }
+        printf("\n");
+    }
+    return length;
+}
+
+int server::decrypt_text(char * text, int length, int protocol)
 {
     if(protocol == 0) {
         // no encryption, print for logging purposes
@@ -40,22 +93,21 @@ int server::encrypt_text(char * text, int length, int protocol)
     return length;
 }
 
-int server::decrypt_text(char * text, int length, int protocol)
-{
-    return length;
-}
-
-int server::get_client_response()
+int server::get_client_file_response()
 {
     cout << "Receiving..." << endl;
     int return_size = 1;
+    int counter = 0;
     while(return_size != 0) {
         char * response = (char *)malloc(16);
-        return_size = read_from_client(response, 16, clientsockfd);
+        return_size = read_from_client(response, 16, clientsocket);
+        printf("Length=%d\n", return_size);
         for(int i=0;i<return_size;i++) {
             printf("%c", response[i]);
         }
         free(response);
+        counter++;
     }
+    printf("\n", counter);
     return 0;
 }

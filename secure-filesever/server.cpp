@@ -70,15 +70,15 @@ int server::start_server()
     socklen_t clilen = sizeof(cli_addr);
     while(1) {
         cout << "Waiting for client connection..." << endl;
-        clientsockfd = accept(sockfd, (struct sockaddr *) &cli_addr,&clilen);
+        clientsocket = accept(sockfd, (struct sockaddr *) &cli_addr,&clilen);
         // error check
-        if (clientsockfd < 0)
+        if (clientsocket < 0)
            error("ERROR on accept");
 
         cout << "Got one!" << endl;
-        authenticate_client();
+        //authenticate_client();
         process_client_request();
-        close(clientsockfd);
+        close(clientsocket);
     }
     return 0;
 }
@@ -111,6 +111,41 @@ int server::read_from_client(char * message, int length, int client)
     if (error_flag < 0)
         error("ERROR reading from socket");
     return error_flag;
+}
+
+/*
+ * Checks if remote host is ready to
+ * respond with data
+ */
+int server::check_response_ready()
+{
+    struct timeval timeout;
+    // set timeout to be 1 second
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+    fd_set active_fd_set;
+    fd_set read_fd_set;
+    fd_set write_fd_set;
+
+    FD_ZERO (&active_fd_set);
+    FD_SET (clientsocket, &active_fd_set);
+
+    read_fd_set = active_fd_set;
+    write_fd_set = active_fd_set;
+    // timeout happens when receiving an incremental
+    // when the destination server is not ready to
+    // return, and as we are only checking one socket
+    // the select() function would block with the
+    // timeout
+    if(select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL, &timeout) < 0)
+        error("Check select error\n");
+
+    if(FD_ISSET(clientsocket, &read_fd_set)) {
+        // host is ready to respond, so
+        // return 1
+        return 1;
+    } 
+    return 0;
 }
 
 /*

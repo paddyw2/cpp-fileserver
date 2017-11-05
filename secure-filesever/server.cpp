@@ -76,7 +76,7 @@ int server::start_server()
            error("ERROR on accept");
 
         cout << "Got one!" << endl;
-        //authenticate_client();
+        authenticate_client();
         process_client_request();
         close(clientsocket);
     }

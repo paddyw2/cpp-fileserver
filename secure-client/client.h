@@ -25,8 +25,13 @@ class client
         int write_to_server(char * message, int length);
         int get_server_response();
         int check_response_ready();
+        int make_request();
         int encrypt_text(char * text, int length, int protocol);
         int decrypt_text(char * text, int length, int protocol);
+        int get_stdin_128(char * filename, char file_contents[]);
+        int send_stdin(char * filename, int protocol);
+        int close_socket();
+
     private:
         int serversocket;
         char password[256];

@@ -46,7 +46,6 @@ int client::send_cipher_nonce()
     char cipher_nonce[] = "AES256 blahblah";
     cout << "Sending nonce" << endl;
     write_to_server(cipher_nonce, strlen(cipher_nonce));
-    //write_to_server(NULL, 0);
     return 0;
 }
 
@@ -75,20 +74,36 @@ int client::receive_challenge()
 
     // send back to server
     write_to_server((char *)digest, DIGESTSIZE);
-    //write_to_server(NULL, 0);
 
     // get response
     char * response = (char *)malloc(128);
     size = read_from_server(response, 128);
     decrypt_text(response, size, 0);
 
-    char message[] = "--> give me that file\n";
-    cout << "Sending instruction" << endl;
-    write_to_server(message, strlen(message));
-
-    get_server_response();
-
    return 0;
+}
+
+int client::make_request()
+{
+    if(1 != 1) {
+        char message[] = "read test.txt";
+        cout << "Sending instruction" << endl;
+        write_to_server(message, strlen(message));
+        char * response = (char *)malloc(128);
+        int length = read_from_server(response, 128);
+        length = decrypt_text(response, length, 0);
+        get_server_response();
+    } else {
+        char message[] = "write demo.txt";
+        cout << "Sending instruction" << endl;
+        write_to_server(message, strlen(message));
+        char * response = (char *)malloc(128);
+        int length = read_from_server(response, 128);
+        length = decrypt_text(response, length, 0);
+        char filenme[] = "demo.txt";
+        send_stdin(filenme, 0);
+    }
+    return 0;
 }
 
 int client::get_server_response()
@@ -99,14 +114,30 @@ int client::get_server_response()
     while(return_size != 0) {
         char * response = (char *)malloc(16);
         return_size = read_from_server(response, 16);
-        printf("\n--> ");
         for(int i=0;i<return_size;i++) {
             printf("%c", response[i]);
         }
         free(response);
         counter++;
     }
-    printf("\n");
+    return 0;
+}
+
+int client::send_stdin(char * filename, int protocol)
+{
+    int chunk_size = 16;
+    int read = chunk_size;
+    cout << "Sending file..." << endl;
+    while(read == chunk_size) {
+        char * file_contents = (char *) malloc(chunk_size);
+        read = get_stdin_128(filename, file_contents);
+        int length = encrypt_text(file_contents, read, protocol);
+        write_to_server(file_contents, length);
+        free(file_contents);
+        if(read < chunk_size)
+            break;
+    }
+    cout << "Terminating..." << endl;
     return 0;
 }
 
@@ -114,11 +145,6 @@ int client::encrypt_text(char * text, int length, int protocol)
 {
     if(protocol == 0) {
         // no encryption, print for logging purposes
-        printf("\n--> ");
-        for(int i=0;i<length;i++) {
-            printf("%c", text[i]);
-        }
-        printf("\n");
     }
     return length;
 }
@@ -127,11 +153,6 @@ int client::decrypt_text(char * text, int length, int protocol)
 {
     if(protocol == 0) {
         // no encryption, print for logging purposes
-        printf("\n--> ");
-        for(int i=0;i<length;i++) {
-            printf("%c", text[i]);
-        }
-        printf("\n");
     }
     return length;
 }
@@ -166,38 +187,21 @@ int client::read_from_server(char * message, int length)
     return error_flag;
 }
 
-/*
- * Checks if remote host is ready to
- * respond with data
- */
-int client::check_response_ready()
+int client::get_stdin_128(char * filename, char file_contents[])
 {
-    struct timeval timeout;
-    // set timeout to be 1 second
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-    fd_set active_fd_set;
-    fd_set read_fd_set;
-    fd_set write_fd_set;
+    FILE *fptr = stdin;
+    int chunk_size = 16;
+    bzero(file_contents, chunk_size);
+    int length = fread(file_contents, sizeof(char), chunk_size, fptr);
+    for(int i=0;i<length;i++)
+        printf("%c", file_contents[i]);
+    printf("\n");
+    return length;
+}
 
-    FD_ZERO (&active_fd_set);
-    FD_SET (serversocket, &active_fd_set);
-
-    read_fd_set = active_fd_set;
-    write_fd_set = active_fd_set;
-    // timeout happens when receiving an incremental
-    // when the destination server is not ready to
-    // return, and as we are only checking one socket
-    // the select() function would block with the
-    // timeout
-    if(select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL, &timeout) < 0)
-        error("Check select error\n");
-
-    if(FD_ISSET(serversocket, &read_fd_set)) {
-        // host is ready to respond, so
-        // return 1
-        return 1;
-    } 
+int client::close_socket()
+{
+    close(serversocket);
     return 0;
 }
 

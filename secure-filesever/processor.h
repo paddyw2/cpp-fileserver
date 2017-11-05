@@ -7,6 +7,7 @@ int server::process_client_request()
     write_to_client(success, length, clientsocket);
     // now read response
     char * response = (char *)malloc(128);
+    bzero(response, 128);
     length = read_from_client(response, 128, clientsocket);
     length = decrypt_text(response, length, 0);
     // get filename
@@ -14,14 +15,14 @@ int server::process_client_request()
     bzero(filename, length);
     // check read or write
     if(strncmp(response, "read ", strlen("read ")) == 0) {
-        memcpy(filename, response+strlen("read "), length - strlen("read ")-1); // -1 for netcat newline
+        memcpy(filename, response+strlen("read "), length - strlen("read ")); // -1 for netcat newline
         cout << filename << endl;
         char message[] = "You have chosen: read\n";
         length = encrypt_text(message, strlen(message), 0);
         write_to_client(message, length, clientsocket);
         send_file(filename, protocol);
     } else if(strncmp(response, "write ", strlen("write ")) == 0) {
-        memcpy(filename, response+strlen("write "), length - strlen("write ")-1); // -1 for netcat newline
+        memcpy(filename, response+strlen("write "), length - strlen("write ")); // -1 for netcat newline
         char message[] = "You have chosen: write\n";
         length = encrypt_text(message, strlen(message), 0);
         write_to_client(message, length, clientsocket);
@@ -32,6 +33,8 @@ int server::process_client_request()
         write_to_client(message, length, clientsocket);
         error("Bad protocol message received\n");
     }
+    free(response);
+    cout << "Done" << endl;
     return 0;
 }
 
@@ -48,7 +51,7 @@ int server::send_file(char * filename, int protocol)
         total_read += read;
         free(file_contents);
     }
-    write_to_client(NULL, 0, clientsocket);
+    //write_to_client(NULL, 0, clientsocket);
     return 0;
 }
 
@@ -61,6 +64,7 @@ int server::get_file(char * filename, int protocol)
         char * response = (char *)malloc(16);
         return_size = read_from_client(response, 16, clientsocket);
         int length = decrypt_text(response, return_size, 0);
+        cout << "Length: " << length << endl;
         length = write_file(filename, response, length);
         total_written += length;
         free(response);
@@ -72,11 +76,6 @@ int server::encrypt_text(char * text, int length, int protocol)
 {
     if(protocol == 0) {
         // no encryption, print for logging purposes
-        printf("\n--> ");
-        for(int i=0;i<length;i++) {
-            printf("%c", text[i]);
-        }
-        printf("\n");
     }
     return length;
 }
@@ -85,10 +84,6 @@ int server::decrypt_text(char * text, int length, int protocol)
 {
     if(protocol == 0) {
         // no encryption, print for logging purposes
-        for(int i=0;i<length;i++) {
-            printf("%c", text[i]);
-        }
-        printf("\n");
     }
     return length;
 }

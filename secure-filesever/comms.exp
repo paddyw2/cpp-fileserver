@@ -18,3 +18,17 @@ The server then computes the same to see if it matches. If not, terminate. Else 
 
 <---- ENCRYPT(success!)
 
+
+###
+Get stdin, along with length
+If length < 16, we know last data
+So send each time:
+
+(data | length | lastpacket)
+so data == 15bytes
+length ==  1byte
+lastpacket == 1byte
+
+(data | length| flag)
+
+If last byte == 1, then last data, so only read length bytes

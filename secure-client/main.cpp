@@ -7,6 +7,5 @@ int main(int argc, char * argv[])
     fileclient.receive_challenge();
     fileclient.make_request();
     fileclient.close_socket();
-    cout << "Finishing..." << endl;
     return 0;
 }

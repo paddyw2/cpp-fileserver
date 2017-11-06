@@ -8,10 +8,13 @@ int server::get_file_128(char filename[], char * contents, int offset)
     int filesize = get_filesize(filename);
     int remaining = filesize - offset;
     int chunk_size;
-    if(remaining > 16)
-        chunk_size = 16;
-    else
+    int last = 0;
+    if(remaining > 14) {
+        chunk_size = 14;
+    } else {
         chunk_size = remaining;
+        last = 1;
+    }
 
     // create and open file
     FILE *fptr;
@@ -24,18 +27,22 @@ int server::get_file_128(char filename[], char * contents, int offset)
     // use size to allocate memory to
     // file buffer
     fread(contents, sizeof(char), chunk_size, fptr);
+    contents[14] = chunk_size;
+    contents[15] = last;
     // close file
     fclose(fptr);
     return chunk_size;
 }
 
-int server::write_file(char filename[], char * contents, int length)
+int server::write_file(char filename[], char * contents, int length, int total_written)
 {
     // create and open file
     FILE *fptr;
     fptr = fopen(filename, "a");
 
-    if(!fptr) {
+    if(!fptr || total_written == 0) {
+        if(total_written == 0)
+            fclose(fptr);
         fptr = fopen(filename, "w");
         if(!fptr) {
             printf("File opening failed\n");

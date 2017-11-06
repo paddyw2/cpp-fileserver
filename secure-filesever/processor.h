@@ -45,26 +45,36 @@ int server::send_file(char * filename, int protocol)
     int total_read = 0;
     while(total_read < file_size) {
         char * file_contents = (char *) malloc(16);
+        bzero(file_contents, 16);
         int read = get_file_128(filename, file_contents, total_read);
         int length = encrypt_text(file_contents, read, protocol);
         write_to_client(file_contents, length, clientsocket);
         total_read += read;
         free(file_contents);
     }
-    //write_to_client(NULL, 0, clientsocket);
+    char success[] = "---OK---";
+    int length = encrypt_text(success, strlen(success), 0);
+    write_to_client(success, length, clientsocket);
     return 0;
 }
 
 int server::get_file(char * filename, int protocol)
 {
     cout << "Receiving file..." << endl;
-    int return_size = 1;
+    int return_size = 16;
     int total_written = 0;
-    while(return_size != 0) {
+    while(1) {
         char * response = (char *)malloc(16);
         return_size = read_from_client(response, 16, clientsocket);
+        if(return_size <= 0) {
+            cout << "Status: FAIL" << endl;
+            break;
+        }
         int length = decrypt_text(response, return_size, 0);
-        cout << "Length: " << length << endl;
+        if(strncmp(response, "---OK---", strlen("---OK---")) == 0) {
+            cout << "Status: " << response << endl;
+            break;
+        }
         length = write_file(filename, response, length);
         total_written += length;
         free(response);
@@ -74,10 +84,11 @@ int server::get_file(char * filename, int protocol)
 
 int server::encrypt_text(char * text, int length, int protocol)
 {
+    int chunk_size = 16;
     if(protocol == 0) {
         // no encryption, print for logging purposes
     }
-    return length;
+    return chunk_size;
 }
 
 int server::decrypt_text(char * text, int length, int protocol)

@@ -109,11 +109,19 @@ int client::make_request()
 int client::get_server_response()
 {
     cout << "Receiving..." << endl;
-    int return_size = 1;
+    int return_size = 16;
     int counter = 0;
-    while(return_size != 0) {
+    while(1) {
         char * response = (char *)malloc(16);
         return_size = read_from_server(response, 16);
+        if(return_size <= 0) {
+            cout << "Status: FAIL" << endl;
+            break;
+        }
+        if(strncmp(response, "---OK---", strlen("---OK---")) == 0) {
+            cout << "Status: " << response << endl;
+            break;
+        }
         for(int i=0;i<return_size;i++) {
             printf("%c", response[i]);
         }
@@ -130,23 +138,27 @@ int client::send_stdin(char * filename, int protocol)
     cout << "Sending file..." << endl;
     while(read == chunk_size) {
         char * file_contents = (char *) malloc(chunk_size);
+        bzero(file_contents, chunk_size);
         read = get_stdin_128(filename, file_contents);
         int length = encrypt_text(file_contents, read, protocol);
         write_to_server(file_contents, length);
         free(file_contents);
-        if(read < chunk_size)
-            break;
     }
+    cout << "Sending success!" << endl;
+    char success[] = "---OK---";
+    int length = encrypt_text(success, strlen(success), 0);
+    write_to_server(success, length);
     cout << "Terminating..." << endl;
     return 0;
 }
 
 int client::encrypt_text(char * text, int length, int protocol)
 {
+    int chunk_size = 16;
     if(protocol == 0) {
         // no encryption, print for logging purposes
     }
-    return length;
+    return chunk_size;
 }
 
 int client::decrypt_text(char * text, int length, int protocol)

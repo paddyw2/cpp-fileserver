@@ -2,13 +2,12 @@ int server::process_client_request()
 {
     int protocol = 0;
     char success[] = "You are authed\n";
-    int length = encrypt_text(success, strlen(success), protocol);
     cout << "Sending success..." << endl;
-    write_to_client(success, length, clientsocket);
+    send_message_client(success, strlen(success), 0);
     // now read response
     char * response = (char *)malloc(128);
     bzero(response, 128);
-    length = read_from_client(response, 128, clientsocket);
+    int length = read_from_client(response, 128, clientsocket);
     length = decrypt_text(response, length, 0);
     // get filename
     char filename[length];
@@ -18,23 +17,50 @@ int server::process_client_request()
         memcpy(filename, response+strlen("read "), length - strlen("read ")); // -1 for netcat newline
         cout << filename << endl;
         char message[] = "You have chosen: read\n";
-        length = encrypt_text(message, strlen(message), 0);
-        write_to_client(message, length, clientsocket);
+        send_message_client(message, strlen(message), 0);
         send_file(filename, protocol);
     } else if(strncmp(response, "write ", strlen("write ")) == 0) {
         memcpy(filename, response+strlen("write "), length - strlen("write ")); // -1 for netcat newline
         char message[] = "You have chosen: write\n";
-        length = encrypt_text(message, strlen(message), 0);
-        write_to_client(message, length, clientsocket);
+        send_message_client(message, strlen(message), 0);
         get_file(filename, protocol);
     } else {
         char message[] = "You have chosen: ERROR\n";
-        length = encrypt_text(message, strlen(message), 0);
-        write_to_client(message, length, clientsocket);
+        send_message_client(message, strlen(message), 0);
         error("Bad protocol message received\n");
     }
     free(response);
     cout << "Done" << endl;
+    return 0;
+}
+
+int server::send_message_client(char * message, int length, int protocol)
+{
+    int chunk_size = 16;
+    int total_read = 0;
+    int read;
+    int end_flag;
+    while(total_read < length) {
+        char chunk[16];
+        int remaining = length - total_read;
+        // determine if end of data or not
+        if(remaining > 14) {
+            read = 14;
+            end_flag = 0;
+        } else {
+            read = remaining;
+            end_flag = 1;
+        }
+        // get data into array
+        memcpy(chunk, message+total_read, read);
+        total_read += read;
+        // set flags
+        chunk[14] = read;
+        chunk[15] = end_flag;
+        // encrypt then send chunk
+        int length = encrypt_text(chunk, chunk_size, 0);
+        write_to_client(chunk, length, clientsocket);
+    }
     return 0;
 }
 

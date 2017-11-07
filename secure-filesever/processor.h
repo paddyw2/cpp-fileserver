@@ -70,14 +70,6 @@ int server::process_client_request()
 
 int server::send_file(char * filename, int protocol)
 {
-    /*
-    int TOTAL_SIZE = 16;
-    int FLAG_SIZE = 2;
-    int DATA_SIZE = TOTAL_SIZE - FLAG_SIZE;
-    int LAST_INDEX = TOTAL_SIZE - 1;
-    int LENGTH_INDEX = TOTAL_SIZE - 2;
-    */
-
     int status = 0;
     int chunk_size = TOTAL_SIZE;
     cerr << "Sending file..." << endl;

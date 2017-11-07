@@ -22,6 +22,12 @@ int server::process_client_request()
         int status = send_file(filename, protocol);
         if(status < 0) {
             // if file does not exist
+            char success[16];
+            memcpy(success, "file not found", 14);
+            success[14] = 14;
+            success[15] = 2;
+            length = encrypt_text(success, 16, 0);
+            write_to_client(success, length, clientsocket);
             return 0;
         }
         // get success response back
@@ -68,7 +74,6 @@ int server::send_file(char * filename, int protocol)
     int chunk_size = 16;
     cerr << "Sending file..." << endl;
     int file_size = get_filesize(filename);
-    cerr << file_size << endl;
     // check for file errors
     if(file_size < 0)
         return -1;

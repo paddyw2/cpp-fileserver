@@ -65,9 +65,7 @@ int server::get_filesize(char filename[])
 {
     // create and open file
     FILE *fptr;
-    cerr << "Checking..." << endl;
     fptr = fopen(filename, "r");
-    cerr << "Checking finished..." << endl;
     if(!fptr) {
         return -1;
     }

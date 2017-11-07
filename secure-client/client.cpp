@@ -195,6 +195,15 @@ int client::get_server_response()
             }
             cerr << "Status: OK" << endl;
             break;
+        } else if(response[15] == 2) {
+            // error packet
+            cerr << "Server status: ";
+            for(int i=0;i<(int)response[14];i++) {
+                fprintf(stderr,"%c", response[i]);
+            }
+            fprintf(stderr,"\n");
+            status = -1;
+            break;
         }
         for(int i=0;i<(int)response[14];i++) {
             printf("%c", response[i]);

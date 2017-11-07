@@ -41,4 +41,7 @@ class server
         char * serverurl;
         struct sockaddr_in serv_addr;
         struct sockaddr_in cli_addr;
+        char cipher[32];
+        char nonce[32];
+        int nonce_length;
 };

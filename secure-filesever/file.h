@@ -6,6 +6,8 @@ int server::get_file_128(char filename[], char * contents, int offset)
 {
     // check if there are 16bytes left in file
     int filesize = get_filesize(filename);
+    if(filesize < 0)
+        return -1;
     int remaining = filesize - offset;
     int chunk_size;
     int last = 0;
@@ -26,16 +28,17 @@ int server::get_file_128(char filename[], char * contents, int offset)
     fseek(fptr, offset, SEEK_SET);
     // use size to allocate memory to
     // file buffer
-    fread(contents, sizeof(char), chunk_size, fptr);
+    int status = fread(contents, sizeof(char), chunk_size, fptr);
     contents[14] = chunk_size;
     contents[15] = last;
     // close file
     fclose(fptr);
-    return chunk_size;
+    return status;
 }
 
 int server::write_file(char filename[], char * contents, int length, int total_written)
 {
+    int status;
     // create and open file
     FILE *fptr;
     fptr = fopen(filename, "a");
@@ -52,10 +55,10 @@ int server::write_file(char filename[], char * contents, int length, int total_w
     //fseek(fptr, offset, SEEK_SET);
     // use size to allocate memory to
     // file buffer
-    fwrite(contents, sizeof(char), length, fptr);
+    status = fwrite(contents, sizeof(char), length, fptr);
     // close file
     fclose(fptr);
-    return length;
+    return status;
 }
 
 int server::get_filesize(char filename[])

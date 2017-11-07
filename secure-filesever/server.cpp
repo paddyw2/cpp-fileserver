@@ -11,43 +11,32 @@
 server::server(int argc, char * argv[])
 {
     // check command line arguments
-    if (argc < 7) {
-        fprintf(stderr,"ERROR\nUsage: ./server command filename hostname port cipher key\n");
+    if (argc < 3) {
+        fprintf(stderr,"ERROR\nUsage: ./server port key\n");
         exit(1);
     }
 
     // set sever password
     bzero(password, 256);
-    cout << "Set the server password: ";
-    cin >> password;
-    cout << "Password: " << password << endl;
+    memcpy(password, argv[2], 256);
 
     // create client socket and check for errors
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
-       error("ERROR opening socket");
-
-
-    char * command = argv[1];
-    char * filename = argv[2];
-    char * cipher = argv[5];
-    char * key = argv[6];
+       error("ERROR opening socket\n");
 
     // convert argument to port number
     // and check for errors
     try {
-        portno = stoi(argv[4]);
+        portno = stoi(argv[1]);
     } catch (const std::exception& ex) {
         error("Invalid port number\n"
               "Usage: ./proxy [logOptions] [replaceOptions] srcPort server dstPort\n");
     }
 
-    // get destination url
-    serverurl = argv[3];
-
     // check for restricted port number
     if(portno < 1024 || destport < 0)
-       error("ERROR reserved port number");
+       error("ERROR reserved port number\n");
 
     // clear structures and set to chosen values
     bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -69,15 +58,19 @@ int server::start_server()
 {
     socklen_t clilen = sizeof(cli_addr);
     while(1) {
-        cout << "Waiting for client connection..." << endl;
+        cerr << "Waiting for client connection..." << endl;
         clientsocket = accept(sockfd, (struct sockaddr *) &cli_addr,&clilen);
         // error check
-        if (clientsocket < 0)
-           error("ERROR on accept");
+        if(clientsocket < 0) {
+           cerr << "ERROR on accept" << endl;
+           continue;
+        }
 
-        cout << "Got one!" << endl;
-        authenticate_client();
-        process_client_request();
+        cerr << "Connected with client" << endl;
+        int status = authenticate_client();
+        if(status != -1) {
+            process_client_request();
+        }
         close(clientsocket);
     }
     return 0;
@@ -94,7 +87,7 @@ int server::write_to_client(char * message, int length, int client)
     error_flag = write(client, message, length);
     // error check
     if (error_flag < 0)
-        error("ERROR writing to socket");
+        error("ERROR writing to socket\n");
     return 0;
 }
 
@@ -109,7 +102,7 @@ int server::read_from_client(char * message, int length, int client)
     //strip_newline((char *)message, length);
     // error check
     if (error_flag < 0)
-        error("ERROR reading from socket");
+        error("ERROR reading from socket\n");
     return error_flag;
 }
 

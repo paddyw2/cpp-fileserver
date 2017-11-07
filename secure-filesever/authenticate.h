@@ -7,9 +7,37 @@
 int server::authenticate_client()
 {
     char * cipher_nonce = (char *) calloc(128, sizeof(char));
-    int return_size = read_from_client(cipher_nonce, 128, clientsocket);
-    cout << "Chosen cipher: " << cipher_nonce << endl;
+    int return_size = read_from_client(cipher_nonce, 127, clientsocket);
+    // parse and extract nonce and cipher information from
+    // message
+    int index = 0;
+    while(cipher_nonce[index] != ' ') {
+        cipher[index] = cipher_nonce[index];
+        index++;
+        if(index >= 31) {
+            cerr << "Bad cipher" << endl;
+            return -1;
+        }
+    }
+    cipher[index] = 0;
+    cerr << "Cipher: " << cipher << endl;
+    cerr << "Nonce: ";
+    index++;
+    int new_index = 0;
+    while(index < return_size) {
+        nonce[new_index] = cipher_nonce[index];
+        fprintf(stderr, "%c", nonce[new_index]);
+        index++;
+        new_index++;
+        if(new_index >= 31) {
+            cerr << "Bad nonce" << endl;
+            return -1;
+        }
+    }
+    fprintf(stderr, "\n");
+    nonce_length = new_index;
     free(cipher_nonce);
+    // information extraction finished
 
     // generate random number
     int rand_size = 64;
@@ -20,9 +48,6 @@ int server::authenticate_client()
     }
 
     // send random number to client as challenge
-    //char tmp_chal[] = "winter!";
-    //rand_challenge = (unsigned char *)tmp_chal;
-    //rand_size = strlen(tmp_chal);
     write_to_client((char *)rand_challenge, rand_size, clientsocket);
     // read their response
     char * chal_response = (char *) calloc(DIGESTSIZE, sizeof(char));
@@ -40,7 +65,7 @@ int server::authenticate_client()
     free(concat);
 
     // compare result with client response
-    cout << "Generated hash: ";
+    cerr << "Generated hash: ";
     int fail = 0;
     for(int i=0; i<DIGESTSIZE;i++) {
         if(digest[i] != (unsigned char)chal_response[i])
@@ -49,17 +74,15 @@ int server::authenticate_client()
     }
     printf("\n");
     if(fail == 1) {
-        cout << "Client authentication failed" << endl;
-        exit(EXIT_FAILURE);
+        cerr << "Client authentication failed" << endl;
+        return -1;
     } else {
-        cout << "Client authenticated" << endl;
+        cerr << "Client authenticated" << endl;
         char success[] = "You are authed\n";
-        cout << "Sending success..." << endl;
+        cerr << "Sending success..." << endl;
         int length = encrypt_text(success, strlen(success), 0);
         write_to_client(success, length, clientsocket);
     }
-
-    // if response equals result, authenticate
 
     return 0;
 }

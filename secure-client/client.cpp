@@ -1,3 +1,4 @@
+#include <openssl/rand.h>
 #include "client.h"
 #include "encryption.h"
 
@@ -56,14 +57,21 @@ client::client(int argc, char * argv[])
 
 int client::send_cipher_nonce()
 {
-    char nonce[] = "1234567";
-    int message_len = strlen(arg_cipher) + strlen(nonce) + 1;
+    // generate random number
+    int rand_size = 16;
+    unsigned char *nonce = (unsigned char *)calloc(rand_size, sizeof(unsigned char));
+    if (!RAND_bytes(nonce, rand_size)) {
+        fprintf(stderr, "Nonce generation error");
+        exit(EXIT_FAILURE);
+    }
+    int message_len = strlen(arg_cipher) + rand_size + 1;
     // create cipher nonce message
     char cipher_nonce[message_len];
     bzero(cipher_nonce, message_len);
     // concatenate strings
     memcpy(cipher_nonce, arg_cipher, strlen(arg_cipher));
-    memcpy(cipher_nonce+strlen(arg_cipher), nonce, strlen(nonce));
+    memcpy(cipher_nonce+strlen(arg_cipher), " ", 1);
+    memcpy(cipher_nonce+strlen(arg_cipher)+1, nonce, rand_size);
     cerr << "Sending nonce" << endl;
     write_to_server(cipher_nonce, strlen(cipher_nonce));
     return 0;
@@ -128,15 +136,15 @@ int client::make_request()
         int status = get_server_response();
         // now send success message back
         if(status < 0) {
-            char success[] = "Client status: FAIL";
+            char success[] = "FAIL";
             length = encrypt_text(success, strlen(success), 0);
             write_to_server(success, length);
             cerr << "FAIL" << endl;
         } else {
-            char success[] = "Client status: OK";
+            char success[] = "OK";
             length = encrypt_text(success, strlen(success), 0);
             write_to_server(success, length);
-            cerr << "OK" << endl;
+            cerr << "Sent OK" << endl;
         }
     } else {
         cerr << "Write chosen" << endl;
@@ -160,7 +168,7 @@ int client::make_request()
         bzero(response, 128);
         length = read_from_server(response, 128);
         length = decrypt_text(response, length, 0);
-        cerr << response << endl;
+        cerr << "Server status: " << response << endl;
     }
     return 0;
 }
@@ -211,7 +219,6 @@ int client::send_stdin(char * filename, int protocol)
         write_to_server(file_contents, length);
         free(file_contents);
     }
-    cerr << "Terminating..." << endl;
     return 0;
 }
 

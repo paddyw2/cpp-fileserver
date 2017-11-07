@@ -20,6 +20,10 @@ int server::process_client_request()
         write_to_client(message, length, clientsocket);
         // send client their file
         int status = send_file(filename, protocol);
+        if(status < 0) {
+            // if file does not exist
+            return 0;
+        }
         // get success response back
         bzero(response, 128);
         length = read_from_client(response, 128, clientsocket);
@@ -64,6 +68,7 @@ int server::send_file(char * filename, int protocol)
     int chunk_size = 16;
     cerr << "Sending file..." << endl;
     int file_size = get_filesize(filename);
+    cerr << file_size << endl;
     // check for file errors
     if(file_size < 0)
         return -1;

@@ -7,13 +7,26 @@
  */
 client::client(int argc, char * argv[])
 {
-    if(argc < 4)
+    if(argc < 7)
         error("Not enough arguments\n");
     // get remote connection info
-    char * hostname = argv[1];
-    int port = atoi(argv[2]);
+    // ./client read test.txt localhost 8080 aes256 secret
+    // get command
+    bzero(arg_command, 32);
+    memcpy(arg_command, argv[1], 32);
+    // get filename
+    bzero(arg_filename, 128);
+    memcpy(arg_filename, argv[2], 128);
+    // get network info
+    char * hostname = argv[3];
+    int port = atoi(argv[4]);
+    // get cipher
+    bzero(arg_cipher, 32);
+    memcpy(arg_cipher, argv[5], 32);
+    // get key
     bzero(password, 256);
-    memcpy(password, argv[3], 256);
+    memcpy(password, argv[6], 256);
+    // print info
     cerr << "Host: " << hostname << endl;
     cerr << "Port: " << port << endl;
     cerr << "Password: " << password << endl;
@@ -43,7 +56,14 @@ client::client(int argc, char * argv[])
 
 int client::send_cipher_nonce()
 {
-    char cipher_nonce[] = "AES256 blahblah";
+    char nonce[] = "1234567";
+    int message_len = strlen(arg_cipher) + strlen(nonce) + 1;
+    // create cipher nonce message
+    char cipher_nonce[message_len];
+    bzero(cipher_nonce, message_len);
+    // concatenate strings
+    memcpy(cipher_nonce, arg_cipher, strlen(arg_cipher));
+    memcpy(cipher_nonce+strlen(arg_cipher), nonce, strlen(nonce));
     cerr << "Sending nonce" << endl;
     write_to_server(cipher_nonce, strlen(cipher_nonce));
     return 0;
@@ -70,7 +90,7 @@ int client::receive_challenge()
     for(int i=0;i<DIGESTSIZE;i++) {
         fprintf(stderr, "%0.2x", digest[i]);
     }
-    fprintf(stderr, "h\n");
+    fprintf(stderr, "\n");
 
     // send back to server
     write_to_server((char *)digest, DIGESTSIZE);
@@ -85,23 +105,62 @@ int client::receive_challenge()
 
 int client::make_request()
 {
-    if(1 == 1) {
-        char message[] = "read test.txt";
-        cerr << "Sending instruction" << endl;
-        write_to_server(message, strlen(message));
+    // contains main program logic
+    // checks for read or write command
+    // then send appropriate protocol messages
+    if(strncmp(arg_command, "read", strlen("read")) == 0) {
+        cerr << "Read chosen" << endl;
+        // formulate request of format: read [filename]
+        int message_len = strlen("read ")+strlen(arg_filename)+1;
+        char message[message_len];
+        bzero(message, message_len);
+        // concatenate strings
+        memcpy(message, "read ", strlen("read "));
+        memcpy(message+strlen("read "), arg_filename, strlen(arg_filename));
+        // encrypt message and send to server
+        int length = encrypt_text(message, strlen(message), 0);
+        write_to_server(message, length);
+        // get acknowledgment back from server
         char * response = (char *)malloc(128);
-        int length = read_from_server(response, 128);
+        length = read_from_server(response, 128);
         length = decrypt_text(response, length, 0);
-        get_server_response();
+        // now output server response to stdout
+        int status = get_server_response();
+        // now send success message back
+        if(status < 0) {
+            char success[] = "Client status: FAIL";
+            length = encrypt_text(success, strlen(success), 0);
+            write_to_server(success, length);
+            cerr << "FAIL" << endl;
+        } else {
+            char success[] = "Client status: OK";
+            length = encrypt_text(success, strlen(success), 0);
+            write_to_server(success, length);
+            cerr << "OK" << endl;
+        }
     } else {
-        char message[] = "write demo.txt";
-        cerr << "Sending instruction" << endl;
+        cerr << "Write chosen" << endl;
+        // formulate request of format: write [filename]
+        int message_len = strlen("write ")+strlen(arg_filename)+1;
+        char message[message_len];
+        bzero(message, message_len);
+        // concatenate strings
+        memcpy(message, "write ", strlen("write "));
+        memcpy(message+strlen("write "), arg_filename, strlen(arg_filename));
+        // encrypt message and send to sever
+        int length = encrypt_text(message, strlen(message), 0);
         write_to_server(message, strlen(message));
+        // get acknowledgment back from server
         char * response = (char *)malloc(128);
-        int length = read_from_server(response, 128);
+        length = read_from_server(response, 128);
         length = decrypt_text(response, length, 0);
-        char filenme[] = "demo.txt";
-        send_stdin(filenme, 0);
+        // now send stdin to server
+        send_stdin(arg_filename, 0);
+        // now get server success message back
+        bzero(response, 128);
+        length = read_from_server(response, 128);
+        length = decrypt_text(response, length, 0);
+        cerr << response << endl;
     }
     return 0;
 }
@@ -109,6 +168,7 @@ int client::make_request()
 int client::get_server_response()
 {
     cerr << "Receiving..." << endl;
+    int status = 0;
     int return_size = 16;
     int counter = 0;
     while(1) {
@@ -117,6 +177,7 @@ int client::get_server_response()
         int length = decrypt_text(response, return_size, 0);
         if(return_size <= 0) {
             cerr << "Status: FAIL" << endl;
+            status = -1;
             break;
         }
         if(response[15] == 1) {
@@ -133,7 +194,7 @@ int client::get_server_response()
         free(response);
         counter++;
     }
-    return 0;
+    return status;
 }
 
 int client::send_stdin(char * filename, int protocol)
@@ -211,11 +272,9 @@ int client::get_stdin_128(char * filename, char file_contents[])
             last = 1;
             break;
         }
-        printf("%c", val);
         file_contents[index] = val;
         index++;
     }
-    printf("%d %d\n", index, last);
     // set length
     file_contents[14] = index;
     // set last flag

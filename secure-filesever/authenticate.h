@@ -55,8 +55,8 @@ int server::authenticate_client()
         cout << "Client authenticated" << endl;
         char success[] = "You are authed\n";
         cout << "Sending success..." << endl;
-        send_message_client(success, strlen(success), 0);
-
+        int length = encrypt_text(success, strlen(success), 0);
+        write_to_client(success, length, clientsocket);
     }
 
     // if response equals result, authenticate

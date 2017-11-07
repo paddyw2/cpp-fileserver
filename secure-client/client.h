@@ -35,5 +35,8 @@ class client
     private:
         int serversocket;
         char password[256];
+        char arg_command[32];
+        char arg_cipher[32];
+        char arg_filename[128];
 
 };

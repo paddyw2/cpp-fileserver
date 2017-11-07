@@ -31,7 +31,6 @@ class server
         int decrypt_text(char * text, int length, int protocol);
         int get_client_file_response();
         int check_response_ready();
-        int send_message_client(char * message, int length, int protocol);
 
     private:
         char password[256];

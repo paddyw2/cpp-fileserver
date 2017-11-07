@@ -11,8 +11,9 @@ int server::get_file_128(char filename[], char * contents, int offset)
     int remaining = filesize - offset;
     int chunk_size;
     int last = 0;
-    if(remaining > 14) {
-        chunk_size = 14;
+    // CRYPTCHANGE //
+    if(remaining > DATA_SIZE) {
+        chunk_size = DATA_SIZE;
     } else {
         chunk_size = remaining;
         last = 1;
@@ -29,8 +30,8 @@ int server::get_file_128(char filename[], char * contents, int offset)
     // use size to allocate memory to
     // file buffer
     int status = fread(contents, sizeof(char), chunk_size, fptr);
-    contents[14] = chunk_size;
-    contents[15] = last;
+    contents[LENGTH_INDEX] = chunk_size;
+    contents[LAST_INDEX] = last;
     // close file
     fclose(fptr);
     return status;

@@ -74,12 +74,19 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
    * In this example we are using 256 bit AES (i.e. a 256 bit key). The
    * IV size for *most* modes is the same as the block size. For AES this
    * is 128 bits */
-  if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
-    handle_errors();
+  if(1 == 1) {
+      if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+        handle_errors();
+  } else {
+      if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
+        handle_errors();
+  }
+
 
   /* Provide the message to be encrypted, and obtain the encrypted output.
    * EVP_EncryptUpdate can be called multiple times if necessary
-   */ if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
+   */
+  if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
     handle_errors();
   ciphertext_len = len;
 
@@ -87,7 +94,9 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
    * this stage.
    * If error at this stage, throw custom error message
    */
-  if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) encryption_error();
+  if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
+      encryption_error();
+
   ciphertext_len += len;
 
   /* Clean up */

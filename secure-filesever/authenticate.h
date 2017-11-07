@@ -53,6 +53,10 @@ int server::authenticate_client()
         exit(EXIT_FAILURE);
     } else {
         cout << "Client authenticated" << endl;
+        char success[] = "You are authed\n";
+        cout << "Sending success..." << endl;
+        send_message_client(success, strlen(success), 0);
+
     }
 
     // if response equals result, authenticate

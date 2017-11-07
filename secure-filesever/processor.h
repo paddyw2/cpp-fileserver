@@ -1,9 +1,6 @@
 int server::process_client_request()
 {
     int protocol = 0;
-    char success[] = "You are authed\n";
-    cout << "Sending success..." << endl;
-    send_message_client(success, strlen(success), 0);
     // now read response
     char * response = (char *)malloc(128);
     bzero(response, 128);
@@ -17,16 +14,19 @@ int server::process_client_request()
         memcpy(filename, response+strlen("read "), length - strlen("read ")); // -1 for netcat newline
         cout << filename << endl;
         char message[] = "You have chosen: read\n";
-        send_message_client(message, strlen(message), 0);
+        length = encrypt_text(message, strlen(message), 0);
+        write_to_client(message, length, clientsocket);
         send_file(filename, protocol);
     } else if(strncmp(response, "write ", strlen("write ")) == 0) {
         memcpy(filename, response+strlen("write "), length - strlen("write ")); // -1 for netcat newline
         char message[] = "You have chosen: write\n";
-        send_message_client(message, strlen(message), 0);
+        length = encrypt_text(message, strlen(message), 0);
+        write_to_client(message, length, clientsocket);
         get_file(filename, protocol);
     } else {
         char message[] = "You have chosen: ERROR\n";
-        send_message_client(message, strlen(message), 0);
+        length = encrypt_text(message, strlen(message), 0);
+        write_to_client(message, length, clientsocket);
         error("Bad protocol message received\n");
     }
     free(response);

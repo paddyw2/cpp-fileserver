@@ -106,40 +106,42 @@ int server::read_from_client(char * message, int length, int client)
     return error_flag;
 }
 
-/*
- * Checks if remote host is ready to
- * respond with data
- */
-int server::check_response_ready()
+int server::encrypt_text(char * plaintext, int length, int protocol, char * ciphertext)
 {
-    struct timeval timeout;
-    // set timeout to be 1 second
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-    fd_set active_fd_set;
-    fd_set read_fd_set;
-    fd_set write_fd_set;
-
-    FD_ZERO (&active_fd_set);
-    FD_SET (clientsocket, &active_fd_set);
-
-    read_fd_set = active_fd_set;
-    write_fd_set = active_fd_set;
-    // timeout happens when receiving an incremental
-    // when the destination server is not ready to
-    // return, and as we are only checking one socket
-    // the select() function would block with the
-    // timeout
-    if(select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL, &timeout) < 0)
-        error("Check select error\n");
-
-    if(FD_ISSET(clientsocket, &read_fd_set)) {
-        // host is ready to respond, so
-        // return 1
-        return 1;
-    } 
-    return 0;
+    int ciphertext_len;
+    if(protocol != 0) {
+        // no encryption, print for logging purposes
+    } else {
+        // aes256
+        encryption encryptor;
+        /* A 256 bit key */
+        unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+        /* A 128 bit IV */
+        unsigned char *iv = (unsigned char *)"0123456789012345";
+        ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
+        cerr << "Cipher length: " << ciphertext_len << endl;
+    }
+    return ciphertext_len;
 }
+
+int server::decrypt_text(char * ciphertext, int length, int protocol, char * plaintext)
+{
+    int plaintext_len;
+    if(protocol != 0) {
+        // no encryption, print for logging purposes
+    } else {
+        // aes256
+        encryption encryptor;
+        /* A 256 bit key */
+        unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+        /* A 128 bit IV */
+        unsigned char *iv = (unsigned char *)"0123456789012345";
+        plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
+        cerr << "Decrypt length: " << plaintext_len << endl;
+    }
+    return plaintext_len;
+}
+
 
 /*
  * Error handler

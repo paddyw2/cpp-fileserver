@@ -11,6 +11,8 @@
 #include <iostream>
 
 #include "constants.h"
+#include "encryption.h"
+#include <openssl/rand.h>
 
 using namespace std;
 
@@ -32,7 +34,11 @@ class server
         int encrypt_text(char * plaintext, int length, int protocol, char * ciphertext);
         int decrypt_text(char * ciphertext, int length, int protocol, char * plaintext);
         int get_client_file_response();
-        int check_response_ready();
+        int process_read_request(char * response, int length);
+        int process_write_request(char * response, int length);
+        int process_bad_request();
+        int get_nonce_cipher();
+        int send_and_check_challenge();
 
     private:
         char password[256];

@@ -1,13 +1,30 @@
-#include <openssl/rand.h>
-#include "encryption.h"
-
-#define BLOCKSIZE 16
-#define DIGESTSIZE 32
-
 int server::authenticate_client()
 {
-    char * cipher_nonce = (char *) calloc(128, sizeof(char));
-    int return_size = read_from_client(cipher_nonce, 127, clientsocket);
+    int success = get_nonce_cipher();
+    if(success > 0)
+        return success;
+
+    success = send_and_check_challenge();
+
+    if(success == 1) {
+        cerr << "Client authentication failed" << endl;
+        return -1;
+    } else {
+        cerr << "Client authenticated" << endl;
+        char success[] = "You are authed\n";
+        cerr << "Sending success..." << endl;
+        char enc_success[strlen(success)+434];
+        int length = encrypt_text(success, strlen(success), 0, enc_success);
+        write_to_client(enc_success, length, clientsocket);
+    }
+
+    return 0;
+}
+
+int server::get_nonce_cipher()
+{
+    char * cipher_nonce = (char *) calloc(RECEIVE_BUFFER, sizeof(char));
+    int return_size = read_from_client(cipher_nonce, RECEIVE_BUFFER-1, clientsocket);
     // parse and extract nonce and cipher information from
     // message
     int index = 0;
@@ -38,7 +55,11 @@ int server::authenticate_client()
     nonce_length = new_index;
     free(cipher_nonce);
     // information extraction finished
+    return 0;
+}
 
+int server::send_and_check_challenge()
+{
     // generate random number
     int rand_size = 64;
     unsigned char *rand_challenge = (unsigned char *)calloc(rand_size, sizeof(unsigned char));
@@ -51,7 +72,7 @@ int server::authenticate_client()
     write_to_client((char *)rand_challenge, rand_size, clientsocket);
     // read their response
     char * chal_response = (char *) calloc(DIGESTSIZE, sizeof(char));
-    return_size = read_from_client(chal_response, DIGESTSIZE, clientsocket);
+    int return_size = read_from_client(chal_response, DIGESTSIZE, clientsocket);
 
     // concatenate password with challenge
     char * concat = (char *) calloc(rand_size + strlen(password), sizeof(char));
@@ -73,17 +94,6 @@ int server::authenticate_client()
         printf("%0.2x", digest[i]);
     }
     printf("\n");
-    if(fail == 1) {
-        cerr << "Client authentication failed" << endl;
-        return -1;
-    } else {
-        cerr << "Client authenticated" << endl;
-        char success[] = "You are authed\n";
-        cerr << "Sending success..." << endl;
-        char enc_success[strlen(success)+434];
-        int length = encrypt_text(success, strlen(success), 0, enc_success);
-        write_to_client(enc_success, length, clientsocket);
-    }
 
-    return 0;
+    return fail;
 }

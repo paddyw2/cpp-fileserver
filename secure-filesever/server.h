@@ -29,8 +29,8 @@ class server
         int process_client_request();
         int send_file(char * filename, int protocol);
         int get_file(char * filename, int protocol);
-        int encrypt_text(char * text, int length, int protocol);
-        int decrypt_text(char * text, int length, int protocol);
+        int encrypt_text(char ** text, int length, int protocol);
+        int decrypt_text(char ** text, int length, int protocol);
         int get_client_file_response();
         int check_response_ready();
 

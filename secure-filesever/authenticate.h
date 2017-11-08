@@ -78,10 +78,12 @@ int server::authenticate_client()
         return -1;
     } else {
         cerr << "Client authenticated" << endl;
-        char success[] = "You are authed\n";
+        char * success = (char *)malloc(TOTAL_SIZE);
+        memcpy(success,"You are authed", strlen("You are authed"));
         cerr << "Sending success..." << endl;
-        int length = encrypt_text(success, strlen(success), 0);
+        int length = encrypt_text(&success, strlen(success), 0);
         write_to_client(success, length, clientsocket);
+        free(success);
     }
 
     return 0;

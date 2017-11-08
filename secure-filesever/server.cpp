@@ -69,7 +69,9 @@ int server::start_server()
         cerr << "Connected with client" << endl;
         int status = authenticate_client();
         if(status != -1) {
-            process_client_request();
+            int status = process_client_request();
+            if(status < 0)
+                cerr << "Communication error" << endl;
         }
         close(clientsocket);
     }
@@ -84,7 +86,10 @@ int server::start_server()
 int server::write_to_client(char * message, int length, int client)
 {
     int error_flag;
-    error_flag = write(client, message, length);
+    char * ciphertext = (char *)malloc(length+434);
+    int cipher_length = encrypt_text(message, length, 0, ciphertext);
+    error_flag = write(client, ciphertext, cipher_length);
+    free(ciphertext);
     // error check
     if (error_flag < 0)
         error("ERROR writing to socket\n");
@@ -99,10 +104,10 @@ int server::read_from_client(char * message, int length, int client)
 {
     int error_flag;
     error_flag = read(client, message, length);
-    //strip_newline((char *)message, length);
-    // error check
-    if (error_flag < 0)
-        error("ERROR reading from socket\n");
+    char * plaintext = (char *)malloc(length);
+    int plaintext_length = decrypt_text(message, length, 0, plaintext);
+    // print out reponse?
+    free(plaintext);
     return error_flag;
 }
 

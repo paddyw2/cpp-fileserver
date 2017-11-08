@@ -126,6 +126,7 @@ int client::make_request()
         memcpy(message, "read ", strlen("read "));
         memcpy(message+strlen("read "), arg_filename, strlen(arg_filename));
         // encrypt message and send to server
+        cerr << "Request: " << message << endl;
         int length = encrypt_text(&message, strlen(message), 0);
         write_to_server(message, length);
         free(message);
@@ -188,6 +189,7 @@ int client::get_server_response()
     int return_size = TOTAL_SIZE;
     int counter = 0;
     while(1) {
+        cerr << "Getting" << endl;
         char * response = (char *)malloc(TOTAL_SIZE);
         return_size = read_from_server(response, TOTAL_SIZE);
         int length = decrypt_text(&response, return_size, 0);
@@ -256,9 +258,10 @@ int client::encrypt_text(char ** text, int length, int protocol)
         unsigned char * ciphertext = (unsigned char *)malloc(length+block_size*2);
         ciphertext_len = encryptor.encrypt((unsigned char *)*text, length, key, iv, ciphertext);
         cerr << "Cipher length: " << ciphertext_len << endl;
-        // free plaintext input, and point to new malloc
-        free(*text);
-        *text = (char *)ciphertext;
+        // resize input and copy result to memory location
+        *text = (char *)realloc(*text, ciphertext_len);
+        memcpy(*text, ciphertext, ciphertext_len);
+        free(ciphertext);
     }
     return ciphertext_len;
 }
@@ -269,7 +272,6 @@ int client::decrypt_text(char ** text, int length, int protocol)
     if(protocol != 0) {
         // no encryption, print for logging purposes
     } else {
-
         encryption encryptor;
         /* A 256 bit key */
         unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
@@ -278,12 +280,16 @@ int client::decrypt_text(char ** text, int length, int protocol)
 
         // plaintext will be equal or less than cipher length
         unsigned char * plaintext = (unsigned char *)malloc(length);
+        bzero(plaintext, length);
         decrypt_len = encryptor.decrypt((unsigned char *)*text, length, key, iv, plaintext);
         cerr << "Decrypt length: " << decrypt_len << endl;
-        // free encrypted input, and point to new malloc
-        free(*text);
-        *text = (char *)plaintext;
-
+        for(int i=0;i<decrypt_len;i++)
+            cerr << plaintext[i];
+        cerr << endl;
+        // resize input and copy result to memory location
+        *text = (char *)realloc(*text, decrypt_len);
+        memcpy(*text, plaintext, decrypt_len);
+        free(plaintext);
     }
 
     return decrypt_len;
@@ -314,8 +320,10 @@ int client::read_from_server(char * message, int length)
     error_flag = read(serversocket, message, length); 
     //strip_newline((char *)message, length);
     // error check
-    if (error_flag < 0)
+    if (error_flag <= 0)
         error("ERROR reading from socket");
+
+    cerr << error_flag << endl;
     return error_flag;
 }
 

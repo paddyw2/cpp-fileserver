@@ -11,7 +11,7 @@
  */
 void encryption::handle_errors(void)
 {
-  printf("Error detected!\n");
+  fprintf(stderr, "Error detected!\n");
   ERR_print_errors_fp(stderr);
   abort();
 }
@@ -21,7 +21,7 @@ void encryption::handle_errors(void)
  */
 void encryption::encryption_error(void)
 {
-    printf("Encryption failed\n");
+    fprintf(stderr, "Encryption failed\n");
     exit(EXIT_FAILURE);
 }
 
@@ -30,8 +30,8 @@ void encryption::encryption_error(void)
  */
 void encryption::decryption_error(void)
 {
-    printf("Decryption failed\n");
-    printf("Please double check your password and try again\n");
+    fprintf(stderr, "Decryption failed\n");
+    fprintf(stderr, "Please double check your password and try again\n");
     exit(EXIT_FAILURE);
 }
 

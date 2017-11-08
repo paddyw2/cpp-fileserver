@@ -106,7 +106,9 @@ int client::receive_challenge()
     // get response
     char * response = (char *)malloc(128);
     size = read_from_server(response, 128);
-    decrypt_text(response, size, 0);
+    char plaintext[size];
+    decrypt_text(response, size, 0, plaintext);
+    free(response);
 
    return 0;
 }
@@ -126,24 +128,28 @@ int client::make_request()
         memcpy(message, "read ", strlen("read "));
         memcpy(message+strlen("read "), arg_filename, strlen(arg_filename));
         // encrypt message and send to server
-        int length = encrypt_text(message, strlen(message), 0);
-        write_to_server(message, length);
+        char enc_msg[message_len+434];
+        int length = encrypt_text(message, strlen(message), 0, enc_msg);
+        write_to_server(enc_msg, length);
         // get acknowledgment back from server
         char * response = (char *)malloc(128);
         length = read_from_server(response, 128);
-        length = decrypt_text(response, length, 0);
+        char plaintext[length];
+        length = decrypt_text(response, length, 0, plaintext);
         // now output server response to stdout
         int status = get_server_response();
         // now send success message back
         if(status < 0) {
             char success[] = "FAIL";
-            length = encrypt_text(success, strlen(success), 0);
-            write_to_server(success, length);
+            char enc_success[strlen("FAIL")+434];
+            length = encrypt_text(success, strlen(success), 0, enc_success);
+            write_to_server(enc_success, length);
             cerr << "FAIL" << endl;
         } else {
             char success[] = "OK";
-            length = encrypt_text(success, strlen(success), 0);
-            write_to_server(success, length);
+            char enc_success[strlen("OK")+434];
+            length = encrypt_text(success, strlen(success), 0, enc_success);
+            write_to_server(enc_success, length);
             cerr << "Sent OK" << endl;
         }
     } else {
@@ -156,19 +162,22 @@ int client::make_request()
         memcpy(message, "write ", strlen("write "));
         memcpy(message+strlen("write "), arg_filename, strlen(arg_filename));
         // encrypt message and send to sever
-        int length = encrypt_text(message, strlen(message), 0);
-        write_to_server(message, strlen(message));
+        char enc_msg[message_len+434];
+        int length = encrypt_text(message, strlen(message), 0, enc_msg);
+        write_to_server(enc_msg, length);
         // get acknowledgment back from server
         char * response = (char *)malloc(128);
         length = read_from_server(response, 128);
-        length = decrypt_text(response, length, 0);
+        char plaintext[length];
+        length = decrypt_text(response, length, 0, plaintext);
         // now send stdin to server
         send_stdin(arg_filename, 0);
         // now get server success message back
         bzero(response, 128);
         length = read_from_server(response, 128);
-        length = decrypt_text(response, length, 0);
-        cerr << "Server status: " << response << endl;
+        char plain_res[length];
+        length = decrypt_text(response, length, 0, plain_res);
+        cerr << "Server status: " << plain_res << endl;
     }
     return 0;
 }
@@ -177,36 +186,37 @@ int client::get_server_response()
 {
     cerr << "Receiving..." << endl;
     int status = 0;
-    int return_size = 16;
+    int return_size = ENCRYPTED_SIZE;
     int counter = 0;
     while(1) {
-        char * response = (char *)malloc(16);
-        return_size = read_from_server(response, 16);
-        int length = decrypt_text(response, return_size, 0);
+        char * response = (char *)malloc(ENCRYPTED_SIZE);
+        return_size = read_from_server(response, ENCRYPTED_SIZE);
+        char plaintext_chunk[return_size];
+        int length = decrypt_text(response, return_size, 0, plaintext_chunk);
         if(return_size <= 0) {
             cerr << "Status: FAIL" << endl;
             status = -1;
             break;
         }
-        if(response[15] == 1) {
+        if(plaintext_chunk[LAST_INDEX] == 1) {
             cerr << "Detected last packet" << endl;
-            for(int i=0;i<(int)response[14];i++) {
-                printf("%c", response[i]);
+            for(int i=0;i<(int)plaintext_chunk[LENGTH_INDEX];i++) {
+                printf("%c", plaintext_chunk[i]);
             }
             cerr << "Status: OK" << endl;
             break;
-        } else if(response[15] == 2) {
+        } else if(plaintext_chunk[LAST_INDEX] == 2) {
             // error packet
             cerr << "Server status: ";
-            for(int i=0;i<(int)response[14];i++) {
-                fprintf(stderr,"%c", response[i]);
+            for(int i=0;i<(int)plaintext_chunk[LENGTH_INDEX];i++) {
+                fprintf(stderr,"%c", plaintext_chunk[i]);
             }
             fprintf(stderr,"\n");
             status = -1;
             break;
         }
-        for(int i=0;i<(int)response[14];i++) {
-            printf("%c", response[i]);
+        for(int i=0;i<(int)plaintext_chunk[LENGTH_INDEX];i++) {
+            printf("%c", plaintext_chunk[i]);
         }
         free(response);
         counter++;
@@ -216,38 +226,57 @@ int client::get_server_response()
 
 int client::send_stdin(char * filename, int protocol)
 {
-    int chunk_size = 16;
-    int flag_size = 2;
+    int chunk_size = TOTAL_SIZE;
+    int flag_size = FLAG_SIZE;
     int read = chunk_size - flag_size;
     cerr << "Sending file..." << endl;
     while(read == chunk_size - flag_size) {
         char * file_contents = (char *) malloc(chunk_size);
         bzero(file_contents, chunk_size);
         read = get_stdin_128(filename, file_contents);
-        int length = encrypt_text(file_contents, chunk_size, protocol);
-        write_to_server(file_contents, length);
+        char enc_chunk[read+434];
+        int length = encrypt_text(file_contents, chunk_size, protocol, enc_chunk);
+        write_to_server(enc_chunk, length);
         free(file_contents);
     }
     return 0;
 }
 
-int client::encrypt_text(char * text, int length, int protocol)
+int client::encrypt_text(char * plaintext, int length, int protocol, char * ciphertext)
 {
-    int chunk_size = length;
-    if(protocol == 0) {
+    int ciphertext_len;
+    if(protocol != 0) {
         // no encryption, print for logging purposes
+    } else {
+        // aes256
+        encryption encryptor;
+        /* A 256 bit key */
+        unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+        /* A 128 bit IV */
+        unsigned char *iv = (unsigned char *)"0123456789012345";
+        ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
+        cerr << "Cipher length: " << ciphertext_len << endl;
     }
-    return chunk_size;
+    return ciphertext_len;
 }
 
-int client::decrypt_text(char * text, int length, int protocol)
+int client::decrypt_text(char * ciphertext, int length, int protocol, char * plaintext)
 {
-    if(protocol == 0) {
+    int plaintext_len;
+    if(protocol != 0) {
         // no encryption, print for logging purposes
+    } else {
+        // aes256
+        encryption encryptor;
+        /* A 256 bit key */
+        unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+        /* A 128 bit IV */
+        unsigned char *iv = (unsigned char *)"0123456789012345";
+        plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
+        cerr << "Decrypt length: " << plaintext_len << endl;
     }
-    return length;
+    return plaintext_len;
 }
-
 /*
  * Writes to client socket and checks
  * for errors

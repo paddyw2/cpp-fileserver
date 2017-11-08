@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+#include "constants.h"
+
 #define DIGESTSIZE 32
 
 using namespace std;
@@ -26,8 +28,8 @@ class client
         int get_server_response();
         int check_response_ready();
         int make_request();
-        int encrypt_text(char * text, int length, int protocol);
-        int decrypt_text(char * text, int length, int protocol);
+        int encrypt_text(char * plaintext, int length, int protocol, char * ciphertext);
+        int decrypt_text(char * ciphertext, int length, int protocol, char * plaintext);
         int get_stdin_128(char * filename, char file_contents[]);
         int send_stdin(char * filename, int protocol);
         int close_socket();

@@ -29,10 +29,10 @@ class server
         int get_file_128(char filename[], char * contents, int offset);
         int write_file(char filename[], char * contents, int length, int total_written);
         int process_client_request();
-        int send_file(char * filename, int protocol);
-        int get_file(char * filename, int protocol);
-        int encrypt_text(char * plaintext, int length, int protocol, char * ciphertext);
-        int decrypt_text(char * ciphertext, int length, int protocol, char * plaintext);
+        int send_file(char * filename);
+        int get_file(char * filename);
+        int encrypt_text(char * plaintext, int length, char * ciphertext);
+        int decrypt_text(char * ciphertext, int length, char * plaintext);
         int get_client_file_response();
         int process_read_request(char * response, int length);
         int process_write_request(char * response, int length);

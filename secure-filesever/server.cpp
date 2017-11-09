@@ -106,39 +106,31 @@ int server::read_from_client(char * message, int length, int client)
     return error_flag;
 }
 
-int server::encrypt_text(char * plaintext, int length, int protocol, char * ciphertext)
+int server::encrypt_text(char * plaintext, int length, char * ciphertext)
 {
     int ciphertext_len;
-    if(protocol != 0) {
-        // no encryption, print for logging purposes
-    } else {
-        // aes256
-        encryption encryptor;
-        /* A 256 bit key */
-        unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-        /* A 128 bit IV */
-        unsigned char *iv = (unsigned char *)"0123456789012345";
-        ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
-        cerr << "Cipher length: " << ciphertext_len << endl;
-    }
+    // aes256
+    encryption encryptor(cipher);
+    /* A 256 bit key */
+    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+    /* A 128 bit IV */
+    unsigned char *iv = (unsigned char *)"0123456789012345";
+    ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
+    cerr << "Cipher length: " << ciphertext_len << endl;
     return ciphertext_len;
 }
 
-int server::decrypt_text(char * ciphertext, int length, int protocol, char * plaintext)
+int server::decrypt_text(char * ciphertext, int length, char * plaintext)
 {
     int plaintext_len;
-    if(protocol != 0) {
-        // no encryption, print for logging purposes
-    } else {
-        // aes256
-        encryption encryptor;
-        /* A 256 bit key */
-        unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-        /* A 128 bit IV */
-        unsigned char *iv = (unsigned char *)"0123456789012345";
-        plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
-        cerr << "Decrypt length: " << plaintext_len << endl;
-    }
+    // aes256
+    encryption encryptor(cipher);
+    /* A 256 bit key */
+    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+    /* A 128 bit IV */
+    unsigned char *iv = (unsigned char *)"0123456789012345";
+    plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
+    cerr << "Decrypt length: " << plaintext_len << endl;
     return plaintext_len;
 }
 

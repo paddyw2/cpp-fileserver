@@ -7,6 +7,8 @@
 class encryption
 {
     public:
+        encryption();
+        encryption(char * cipher);
         void handle_errors(void);
         void encryption_error(void);
         void decryption_error(void);
@@ -15,5 +17,6 @@ class encryption
         int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext);
 
     private:
+        int protocol;
 
 };

@@ -28,10 +28,10 @@ class client
         int get_server_response();
         int check_response_ready();
         int make_request();
-        int encrypt_text(char * plaintext, int length, int protocol, char * ciphertext);
-        int decrypt_text(char * ciphertext, int length, int protocol, char * plaintext);
+        int encrypt_text(char * plaintext, int length, char * ciphertext);
+        int decrypt_text(char * ciphertext, int length, char * plaintext);
         int get_stdin_128(char * filename, char file_contents[]);
-        int send_stdin(char * filename, int protocol);
+        int send_stdin(char * filename);
         int close_socket();
 
     private:

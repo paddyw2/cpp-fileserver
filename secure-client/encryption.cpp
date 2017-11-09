@@ -6,12 +6,30 @@
  */
 
 /*
+ * Hash constructor:
+ * No cipher needed
+ */
+encryption::encryption()
+{
+}
+
+/*
+ * Constructor:
+ * Parses protocol (either AES128,
+ * AES256, or null)
+ */
+encryption::encryption(char * cipher)
+{
+    protocol = 0;
+}
+
+/*
  * General error handler
  * Gives verbose error
  */
 void encryption::handle_errors(void)
 {
-  printf("Error detected!\n");
+  fprintf(stderr, "Error detected!\n");
   ERR_print_errors_fp(stderr);
   abort();
 }
@@ -21,7 +39,7 @@ void encryption::handle_errors(void)
  */
 void encryption::encryption_error(void)
 {
-    printf("Encryption failed\n");
+    fprintf(stderr, "Encryption failed\n");
     exit(EXIT_FAILURE);
 }
 
@@ -30,8 +48,8 @@ void encryption::encryption_error(void)
  */
 void encryption::decryption_error(void)
 {
-    printf("Decryption failed\n");
-    printf("Please double check your password and try again\n");
+    fprintf(stderr, "Decryption failed\n");
+    fprintf(stderr, "Please double check your password and try again\n");
     exit(EXIT_FAILURE);
 }
 
@@ -74,12 +92,19 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
    * In this example we are using 256 bit AES (i.e. a 256 bit key). The
    * IV size for *most* modes is the same as the block size. For AES this
    * is 128 bits */
-  if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
-    handle_errors();
+  if(protocol == 0) {
+      if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+        handle_errors();
+  } else {
+      if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
+        handle_errors();
+  }
+
 
   /* Provide the message to be encrypted, and obtain the encrypted output.
    * EVP_EncryptUpdate can be called multiple times if necessary
-   */ if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
+   */
+  if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
     handle_errors();
   ciphertext_len = len;
 
@@ -87,7 +112,9 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
    * this stage.
    * If error at this stage, throw custom error message
    */
-  if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) encryption_error();
+  if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
+      encryption_error();
+
   ciphertext_len += len;
 
   /* Clean up */
@@ -97,7 +124,7 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
 }
 
 /*
- * Decrypts plaintext
+ * Decrypts ciphertext
  */
 int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
   unsigned char *iv, unsigned char *plaintext)
@@ -116,8 +143,14 @@ int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
    * In this example we are using 256 bit AES (i.e. a 256 bit key). The
    * IV size for *most* modes is the same as the block size. For AES this
    * is 128 bits */
-  if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+
+  if(protocol == 0) {
+    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
     decryption_error();
+  } else {
+    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
+    decryption_error();
+  }
 
   /* Provide the message to be decrypted, and obtain the plaintext output.
    * EVP_DecryptUpdate can be called multiple times if necessary

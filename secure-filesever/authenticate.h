@@ -26,8 +26,8 @@ int server::authenticate_client()
         cerr << "Client authenticated" << endl;
         char success[] = "You are authed\n";
         cerr << "Sending success..." << endl;
-        char enc_success[strlen(success)+434];
-        int length = encrypt_text(success, strlen(success), 0, enc_success);
+        char enc_success[strlen(success)+BLOCK_SIZE];
+        int length = encrypt_text(success, strlen(success), enc_success);
         write_to_client(enc_success, length, clientsocket);
     }
     // indicate authentication successfull

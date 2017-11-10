@@ -99,7 +99,6 @@ int server::read_from_client(char * message, int length, int client)
 {
     int error_flag;
     error_flag = read(client, message, length);
-    //strip_newline((char *)message, length);
     // error check
     if (error_flag < 0)
         error("ERROR reading from socket\n");

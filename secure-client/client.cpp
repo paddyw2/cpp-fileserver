@@ -99,16 +99,18 @@ int client::receive_challenge()
     // get random challenge
     char * rand_value = (char *) calloc(128, sizeof(char));
     int size = read_from_server(rand_value, 128);
+    char rand_plaintext[size];
+    int length = decrypt_text(rand_value, size, rand_plaintext);
    
     // concatenate password with challenge
-    char * concat = (char *) calloc(size + strlen(password), sizeof(char));
+    char * concat = (char *) calloc(length + strlen(password), sizeof(char));
     memcpy(concat, password, strlen(password));
-    memcpy(concat+strlen(password), rand_value, size);
+    memcpy(concat+strlen(password), rand_plaintext, length);
 
     // calcualte hash of concatenation
     unsigned char digest[DIGESTSIZE];
     encryption encryptor;
-    encryptor.get_SHA256((unsigned char *)concat, size+strlen(password), digest);
+    encryptor.get_SHA256((unsigned char *)concat, length+strlen(password), digest);
     free(concat);
     free(rand_value);
 
@@ -120,7 +122,9 @@ int client::receive_challenge()
     fprintf(stderr, "\n");
 
     // send back to server
-    write_to_server((char *)digest, DIGESTSIZE);
+    char crypt_digest[DIGESTSIZE+BLOCK_SIZE];
+    length = encrypt_text((char *)digest, DIGESTSIZE, crypt_digest);
+    write_to_server(crypt_digest, length);
 
     // get server status response
     char * response = (char *)malloc(128);

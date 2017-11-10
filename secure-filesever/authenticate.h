@@ -99,10 +99,15 @@ int server::send_and_check_challenge()
     }
 
     // send random number to client as challenge
-    write_to_client((char *)rand_challenge, rand_size, clientsocket);
+    char enc_challenge[rand_size+BLOCK_SIZE];
+    int length = encrypt_text((char *)rand_challenge, rand_size, enc_challenge);
+    write_to_client(enc_challenge, length, clientsocket);
+
     // read their response
-    char * chal_response = (char *) calloc(DIGESTSIZE, sizeof(char));
-    int return_size = read_from_client(chal_response, DIGESTSIZE, clientsocket);
+    char * chal_response = (char *) calloc(DIGESTSIZE+BLOCK_SIZE, sizeof(char));
+    int return_size = read_from_client(chal_response, DIGESTSIZE+BLOCK_SIZE, clientsocket);
+    char plain_response[return_size];
+    length = decrypt_text(chal_response, return_size, plain_response);
 
     // concatenate password with challenge
     char * concat = (char *) calloc(rand_size + strlen(password), sizeof(char));
@@ -119,7 +124,7 @@ int server::send_and_check_challenge()
     cerr << "Generated hash: ";
     int success = 0;
     for(int i=0; i<DIGESTSIZE;i++) {
-        if(digest[i] != (unsigned char)chal_response[i])
+        if(digest[i] != (unsigned char)plain_response[i])
             success = 1;
         printf("%0.2x", digest[i]);
     }

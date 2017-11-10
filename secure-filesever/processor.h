@@ -34,16 +34,16 @@ int server::process_client_request()
  */
 int server::process_read_request(char * response, int length)
 {
+    // extract filename
+    char filename[length];
+    bzero(filename, length);
+    memcpy(filename, response+strlen("read "), length - strlen("read "));
+
     // send client confirmation of request
     char message[] = "You have chosen: read";
     char enc_msg[strlen(message)+BLOCK_SIZE];
     length = encrypt_text(message, strlen(message), enc_msg);
     write_to_client(enc_msg, length, clientsocket);
-
-    // extract filename
-    char filename[length];
-    bzero(filename, length);
-    memcpy(filename, response+strlen("read "), length - strlen("read "));
 
     // send client their file
     int status = send_file(filename);
@@ -82,16 +82,16 @@ int server::process_read_request(char * response, int length)
  */
 int server::process_write_request(char * response, int length)
 {
+    // extract filename
+    char filename[length];
+    bzero(filename, length);
+    memcpy(filename, response+strlen("write "), length - strlen("write "));
+
     // send client confirmation of request
     char message[] = "You have chosen: write";
     char enc_msg[strlen(message)+BLOCK_SIZE];
     length = encrypt_text(message, strlen(message), enc_msg);
     write_to_client(enc_msg, length, clientsocket);
-
-    // extract filename
-    char filename[length];
-    bzero(filename, length);
-    memcpy(filename, response+strlen("write "), length - strlen("write "));
 
      // receive client file data
     int status = get_file(filename);

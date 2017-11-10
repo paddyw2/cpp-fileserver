@@ -160,7 +160,7 @@ int client::make_request()
         memcpy(message, "read ", strlen("read "));
         memcpy(message+strlen("read "), arg_filename, strlen(arg_filename));
         // encrypt message and send to server
-        char enc_msg[message_len+434];
+        char enc_msg[message_len+BLOCK_SIZE];
         int length = encrypt_text(message, strlen(message), enc_msg);
         write_to_server(enc_msg, length);
         // get acknowledgment back from server
@@ -173,13 +173,13 @@ int client::make_request()
         // now send success message back
         if(status < 0) {
             char success[] = "FAIL";
-            char enc_success[strlen("FAIL")+434];
+            char enc_success[strlen("FAIL")+BLOCK_SIZE];
             length = encrypt_text(success, strlen(success), enc_success);
             write_to_server(enc_success, length);
             cerr << "FAIL" << endl;
         } else {
             char success[] = "OK";
-            char enc_success[strlen("OK")+434];
+            char enc_success[strlen("OK")+BLOCK_SIZE];
             length = encrypt_text(success, strlen(success), enc_success);
             write_to_server(enc_success, length);
             cerr << "Sent OK" << endl;
@@ -194,7 +194,7 @@ int client::make_request()
         memcpy(message, "write ", strlen("write "));
         memcpy(message+strlen("write "), arg_filename, strlen(arg_filename));
         // encrypt message and send to sever
-        char enc_msg[message_len+434];
+        char enc_msg[message_len+BLOCK_SIZE];
         int length = encrypt_text(message, strlen(message), enc_msg);
         write_to_server(enc_msg, length);
         // get acknowledgment back from server
@@ -276,7 +276,7 @@ int client::send_stdin(char * filename)
         char * file_contents = (char *) malloc(chunk_size);
         bzero(file_contents, chunk_size);
         read = get_stdin_128(filename, file_contents);
-        char enc_chunk[read+434];
+        char enc_chunk[read+BLOCK_SIZE];
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
         write_to_server(enc_chunk, length);
         free(file_contents);

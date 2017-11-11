@@ -62,7 +62,9 @@ int server::get_nonce_cipher()
     cerr << "Nonce: ";
     index++;
     int new_index = 0;
+    cerr << return_size << " " << index << " " << NONCE_SIZE << endl;
     while(index < return_size) {
+        cerr << "Writing to: " << new_index << endl;
         nonce[new_index] = cipher_nonce[index];
         fprintf(stderr, "%c", nonce[new_index]);
         index++;

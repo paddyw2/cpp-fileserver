@@ -1,3 +1,4 @@
+#define NONCE_SIZE 16
 #define DIGESTSIZE 32
 #define RECEIVE_BUFFER 128
 #define ENCRYPTED_SIZE 32

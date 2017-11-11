@@ -20,7 +20,20 @@ encryption::encryption()
  */
 encryption::encryption(char * cipher)
 {
-    protocol = 0;
+    // parse cipher
+    if(strncmp(cipher, "aes256", strlen("aes256")) == 0)
+        protocol = 0;
+    else if(strncmp(cipher, "aes128", strlen("aes256")) == 0)
+        protocol = 1;
+    else if(strncmp(cipher, "null", strlen("null")) == 0)
+        protocol = 2;
+    else
+        protocol = -1;
+}
+
+int encryption::get_cipher()
+{
+    return protocol;
 }
 
 /*
@@ -93,11 +106,17 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
    * IV size for *most* modes is the same as the block size. For AES this
    * is 128 bits */
   if(protocol == 0) {
+      // aes256 cipher
       if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
         handle_errors();
-  } else {
+  } else if(protocol == 1) {
+      // aes128 cipher
       if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
         handle_errors();
+  } else {
+      // null cipher
+      memcpy(ciphertext, plaintext, plaintext_len);
+      return plaintext_len;
   }
 
 
@@ -145,11 +164,17 @@ int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
    * is 128 bits */
 
   if(protocol == 0) {
+      // aes256 cipher
     if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
     decryption_error();
-  } else {
+  } else if(protocol == 1) {
+      // aes128 cipher
     if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
     decryption_error();
+  } else {
+      // null cipher
+      memcpy(plaintext, ciphertext, ciphertext_len);
+      return ciphertext_len;
   }
 
   /* Provide the message to be decrypted, and obtain the plaintext output.

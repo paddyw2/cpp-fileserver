@@ -12,8 +12,6 @@
 
 #include "constants.h"
 
-#define DIGESTSIZE 32
-
 using namespace std;
 
 class client
@@ -28,10 +26,12 @@ class client
         int get_server_response();
         int check_response_ready();
         int make_request();
+        int set_key_iv();
         int encrypt_text(char * plaintext, int length, char * ciphertext);
         int decrypt_text(char * ciphertext, int length, char * plaintext);
         int get_stdin_128(char * filename, char file_contents[]);
         int send_stdin(char * filename);
+        int check_cipher();
         int close_socket();
 
     private:
@@ -40,5 +40,8 @@ class client
         char arg_command[32];
         char arg_cipher[32];
         char arg_filename[128];
+        char sent_nonce[NONCE_SIZE+1];
+        unsigned char * key;
+        unsigned char * iv;
 
 };

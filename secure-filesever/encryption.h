@@ -9,6 +9,7 @@ class encryption
     public:
         encryption();
         encryption(char * cipher);
+        int get_cipher();
         void handle_errors(void);
         void encryption_error(void);
         void decryption_error(void);

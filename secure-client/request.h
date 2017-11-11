@@ -38,7 +38,7 @@ int client::make_request()
     char plaintext[length];
     length = decrypt_text(response, length, plaintext);
 
-    if(strncmp(command, "read ", strlen("read ") == 0)) {
+    if(strncmp(command, "read", 4) == 0) {
         // now output server response to stdout
         int status = get_server_response();
 
@@ -48,13 +48,12 @@ int client::make_request()
             char enc_success[strlen("FAIL")+BLOCK_SIZE];
             length = encrypt_text(success, strlen(success), enc_success);
             write_to_server(enc_success, length);
-            cerr << "FAIL" << endl;
         } else {
             char success[] = "OK";
             char enc_success[strlen("OK")+BLOCK_SIZE];
             length = encrypt_text(success, strlen(success), enc_success);
             write_to_server(enc_success, length);
-            cerr << "Sent OK" << endl;
+            cerr << "Local: OK" << endl;
         }
     } else {
         // now send stdin to server
@@ -66,7 +65,10 @@ int client::make_request()
         char plain_res[length];
         length = decrypt_text(response, length, plain_res);
         plain_res[length+1] = 0;
-        cerr << "Server status: " << plain_res << endl;
+        if(plain_res[LAST_INDEX] < 2)
+            cerr << "OK" << endl;
+        else
+            cerr << "Error: file could not be written" << endl;
     }
     return 0;
 }

@@ -69,8 +69,11 @@ int server::start_server()
         cerr << "Connected with client" << endl;
         int status = authenticate_client();
         if(status != -1) {
+            set_key_iv();
             process_client_request();
         }
+        free(iv);
+        free(key);
         close(clientsocket);
     }
     return 0;
@@ -105,17 +108,43 @@ int server::read_from_client(char * message, int length, int client)
     return error_flag;
 }
 
+int server::set_key_iv()
+{
+    cerr << "Creating keys..." << endl;
+    encryption encryptor;
+    // concat = (password | nonce | "IV")
+    int concat_iv_len = strlen(password) + NONCE_SIZE + strlen("IV");
+    char concat_iv[concat_iv_len];
+    memcpy(concat_iv, password, strlen(password));
+    memcpy(concat_iv+strlen(password), nonce, NONCE_SIZE);
+    memcmp(concat_iv+strlen(password)+NONCE_SIZE, "IV", strlen("IV"));
+    iv = (unsigned char *)malloc(DIGESTSIZE);
+    encryptor.get_SHA256((unsigned char *)concat_iv, concat_iv_len, iv);
+
+    // concat_key = (password | nonce | "SK")
+    int concat_key_len = strlen(password) + NONCE_SIZE + strlen("SK");
+    char concat_key[concat_key_len];
+    memcpy(concat_key, password, strlen(password));
+    memcpy(concat_key+strlen(password), nonce, NONCE_SIZE);
+    memcmp(concat_key+strlen(password)+NONCE_SIZE, "SK", strlen("SK"));
+    key = (unsigned char *)malloc(DIGESTSIZE);
+    encryptor.get_SHA256((unsigned char *)concat_key, concat_key_len, key);
+
+    cerr << "Created..." << endl;
+    return 0;
+}
+
+
 int server::encrypt_text(char * plaintext, int length, char * ciphertext)
 {
     int ciphertext_len;
     // aes256
     encryption encryptor(cipher);
     /* A 256 bit key */
-    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
     /* A 128 bit IV */
-    unsigned char *iv = (unsigned char *)"0123456789012345";
+    //unsigned char *iv = (unsigned char *)"0123456789012345";
     ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
-    cerr << "Cipher length: " << ciphertext_len << endl;
     return ciphertext_len;
 }
 
@@ -125,11 +154,10 @@ int server::decrypt_text(char * ciphertext, int length, char * plaintext)
     // aes256
     encryption encryptor(cipher);
     /* A 256 bit key */
-    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
     /* A 128 bit IV */
-    unsigned char *iv = (unsigned char *)"0123456789012345";
+    //unsigned char *iv = (unsigned char *)"0123456789012345";
     plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
-    cerr << "Decrypt length: " << plaintext_len << endl;
     return plaintext_len;
 }
 

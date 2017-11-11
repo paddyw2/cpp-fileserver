@@ -27,6 +27,7 @@ client::client(int argc, char * argv[])
     // get cipher
     bzero(arg_cipher, 32);
     memcpy(arg_cipher, argv[5], 32);
+    check_cipher();
 
     // get key
     bzero(password, 256);
@@ -58,6 +59,8 @@ client::client(int argc, char * argv[])
     // check for errors
     if(error_flag < 0)
         error("Socket failure\n");
+
+    set_key_iv();
 }
 
 /*
@@ -68,12 +71,14 @@ client::client(int argc, char * argv[])
 int client::send_cipher_nonce()
 {
     // generate random number
-    int rand_size = 16;
+    int rand_size = NONCE_SIZE;
     unsigned char *nonce = (unsigned char *)calloc(rand_size, sizeof(unsigned char));
     if (!RAND_bytes(nonce, rand_size)) {
         fprintf(stderr, "Nonce generation error");
         exit(EXIT_FAILURE);
     }
+    // save to class variable
+    memcpy(sent_nonce, nonce, rand_size);
     int message_len = strlen(arg_cipher) + rand_size + 1;
     // create cipher nonce message
     char cipher_nonce[message_len];
@@ -82,8 +87,9 @@ int client::send_cipher_nonce()
     memcpy(cipher_nonce, arg_cipher, strlen(arg_cipher));
     memcpy(cipher_nonce+strlen(arg_cipher), " ", 1);
     memcpy(cipher_nonce+strlen(arg_cipher)+1, nonce, rand_size);
-    cerr << "Sending nonce" << endl;
+    cerr << "Sending cipher/nonce" << endl;
     write_to_server(cipher_nonce, strlen(cipher_nonce));
+    free(nonce);
     return 0;
 }
 
@@ -116,11 +122,13 @@ int client::receive_challenge()
     free(rand_value);
 
     // print generated hash
+    /*
     cerr << "Generated hash: ";
     for(int i=0;i<DIGESTSIZE;i++) {
         fprintf(stderr, "%0.2x", digest[i]);
     }
     fprintf(stderr, "\n");
+    */
 
     // send back to server
     char crypt_digest[DIGESTSIZE+BLOCK_SIZE];
@@ -131,8 +139,10 @@ int client::receive_challenge()
     char * response = (char *)malloc(128);
     size = read_from_server(response, 128);
     // if failed, then server disconnects
-    if(size <= 0)
-        error("Authentication failed\n");
+    if(size <= 0) {
+        cerr << "Error: wrong key" << endl;
+        exit(EXIT_FAILURE);
+    }
     char plaintext[size];
     decrypt_text(response, size, plaintext);
     free(response);
@@ -148,38 +158,41 @@ int client::get_server_response()
 {
     cerr << "Receiving..." << endl;
     int status = 0;
-    int return_size = ENCRYPTED_SIZE;
+
+    // calculate size to read
+    int encrypt_size = ENCRYPTED_SIZE;
+    if(strncmp(arg_cipher, "null", strlen("null")) == 0)
+        encrypt_size = TOTAL_SIZE;
+
+    int return_size = encrypt_size;
     int counter = 0;
     while(1) {
-        char * response = (char *)malloc(ENCRYPTED_SIZE);
-        return_size = read_from_server(response, ENCRYPTED_SIZE);
+        // read response from server
+        char * response = (char *)malloc(encrypt_size);
+        return_size = read_from_server(response, encrypt_size);
+        if(return_size == 0) {
+            cerr << "Error: server disconnected" << endl;
+            status = -1;
+            break;
+        }
+        // decrypt response
         char plaintext_chunk[return_size];
         int length = decrypt_text(response, return_size, plaintext_chunk);
-        if(return_size <= 0) {
-            cerr << "Status: FAIL" << endl;
+        // check for error packet
+        if(plaintext_chunk[LAST_INDEX] > 1) {
+            // print error packet data
+            if(plaintext_chunk[LAST_INDEX] == 2)
+                cerr << "Error: file not found on server" << endl;
             status = -1;
             break;
         }
-        if(plaintext_chunk[LAST_INDEX] == 1) {
-            cerr << "Detected last packet" << endl;
-            for(int i=0;i<(int)plaintext_chunk[LENGTH_INDEX];i++) {
-                printf("%c", plaintext_chunk[i]);
-            }
-            cerr << "Status: OK" << endl;
-            break;
-        } else if(plaintext_chunk[LAST_INDEX] == 2) {
-            // error packet
-            cerr << "Server status: ";
-            for(int i=0;i<(int)plaintext_chunk[LENGTH_INDEX];i++) {
-                fprintf(stderr,"%c", plaintext_chunk[i]);
-            }
-            fprintf(stderr,"\n");
-            status = -1;
-            break;
-        }
+        // if normal packet, print to stdout
         for(int i=0;i<(int)plaintext_chunk[LENGTH_INDEX];i++) {
             printf("%c", plaintext_chunk[i]);
         }
+        // if packet was last packet, break loop
+        if(plaintext_chunk[LAST_INDEX] == 1)
+            break;
         free(response);
         counter++;
     }
@@ -200,12 +213,11 @@ int client::send_stdin(char * filename)
     while(read == chunk_size - flag_size) {
         char * file_contents = (char *) malloc(chunk_size);
         bzero(file_contents, chunk_size);
+        // read chunk from stdin
         read = get_stdin_128(filename, file_contents);
         char enc_chunk[chunk_size+BLOCK_SIZE];
-        cerr << "SIZE 1: " << read+434 << endl;
-        cerr << "CHUNK: " << chunk_size << endl;
-        cerr << "READ: " << read << endl;
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
+        // send encrypted to server
         write_to_server(enc_chunk, length);
         free(file_contents);
     }
@@ -221,12 +233,35 @@ int client::encrypt_text(char * plaintext, int length, char * ciphertext)
     // aes256
     encryption encryptor(arg_cipher);
     /* A 256 bit key */
-    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
     /* A 128 bit IV */
-    unsigned char *iv = (unsigned char *)"0123456789012345";
+    //unsigned char *iv = (unsigned char *)"0123456789012345";
     ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
-    cerr << "Cipher length: " << ciphertext_len << endl;
     return ciphertext_len;
+}
+
+int client::set_key_iv()
+{
+    encryption encryptor;
+    // concat = (password | nonce | "IV")
+    int concat_iv_len = strlen(password) + NONCE_SIZE + strlen("IV");
+    char concat_iv[concat_iv_len];
+    memcpy(concat_iv, password, strlen(password));
+    memcpy(concat_iv+strlen(password), sent_nonce, NONCE_SIZE);
+    memcmp(concat_iv+strlen(password)+NONCE_SIZE, "IV", strlen("IV"));
+    iv = (unsigned char *)malloc(DIGESTSIZE);
+    encryptor.get_SHA256((unsigned char *)concat_iv, concat_iv_len, iv);
+
+    // concat_key = (password | nonce | "SK")
+    int concat_key_len = strlen(password) + NONCE_SIZE + strlen("SK");
+    char concat_key[concat_key_len];
+    memcpy(concat_key, password, strlen(password));
+    memcpy(concat_key+strlen(password), sent_nonce, NONCE_SIZE);
+    memcmp(concat_key+strlen(password)+NONCE_SIZE, "SK", strlen("SK"));
+    key = (unsigned char *)malloc(DIGESTSIZE);
+    encryptor.get_SHA256((unsigned char *)concat_key, concat_key_len, key);
+
+    return 0;
 }
 
 /*
@@ -237,12 +272,12 @@ int client::decrypt_text(char * ciphertext, int length, char * plaintext)
     int plaintext_len;
     // aes256
     encryption encryptor(arg_cipher);
+
     /* A 256 bit key */
-    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
     /* A 128 bit IV */
-    unsigned char *iv = (unsigned char *)"0123456789012345";
+    //unsigned char *iv = (unsigned char *)"0123456789012345";
     plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
-    cerr << "Decrypt length: " << plaintext_len << endl;
     return plaintext_len;
 }
 
@@ -300,6 +335,20 @@ int client::get_stdin_128(char * filename, char file_contents[])
     // set last flag
     file_contents[15] = last;
     return index;
+}
+
+int client::check_cipher()
+{
+    if(strncmp(arg_cipher, "aes256", strlen("aes256")) == 0)
+        return 0;
+    else if(strncmp(arg_cipher, "aes128", strlen("aes128")) == 0)
+        return 0;
+    else if(strncmp(arg_cipher, "null", strlen("null")) == 0)
+        return 0;
+    else
+        error("ERROR: Invalid cipher\n");
+
+    return -1;
 }
 
 /*

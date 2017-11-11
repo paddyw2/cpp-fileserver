@@ -39,6 +39,7 @@ class server
         int process_bad_request();
         int get_nonce_cipher();
         int send_and_check_challenge();
+        int set_key_iv();
 
     private:
         char password[256];
@@ -50,6 +51,8 @@ class server
         struct sockaddr_in serv_addr;
         struct sockaddr_in cli_addr;
         char cipher[32];
-        char nonce[32];
+        char nonce[NONCE_SIZE];
         int nonce_length;
+        unsigned char * iv;
+        unsigned char * key;
 };

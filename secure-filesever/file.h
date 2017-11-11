@@ -122,7 +122,7 @@ int server::send_file(char * filename)
             status = -1;
             break;
         }
-        char enc_chunk[read + BLOCK_SIZE];
+        char enc_chunk[TOTAL_SIZE + BLOCK_SIZE];
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
         write_to_client(enc_chunk, length, clientsocket);
         total_read += read;
@@ -141,19 +141,23 @@ int server::get_file(char * filename)
 {
     cerr << "Receiving file..." << endl;
     int status = 0;
-    int return_size = ENCRYPTED_SIZE;
+    // calculate size to read
+    int encrypt_size = ENCRYPTED_SIZE;
+    if(strncmp(cipher, "null", strlen("null")) == 0)
+        encrypt_size = TOTAL_SIZE;
+
+    int return_size = encrypt_size;
     int total_written = 0;
     while(1) {
         // get block of encrypted data from client
-        char * response = (char *)malloc(ENCRYPTED_SIZE);
-        return_size = read_from_client(response, ENCRYPTED_SIZE, clientsocket);
+        char * response = (char *)malloc(encrypt_size);
+        return_size = read_from_client(response, encrypt_size, clientsocket);
         // check for read errors
-        if(return_size <= 0) {
+        if(return_size == 0) {
             cerr << "Status: FAIL" << endl;
             status = -1;
             break;
         }
-
         // decrypt data block
         char plaintext[return_size];
         int length = decrypt_text(response, return_size, plaintext);
@@ -182,8 +186,8 @@ int server::get_file(char * filename)
             }
             // increment total written
             total_written += length;
-            free(response);
         }
+        free(response);
     }
     return status;
 }

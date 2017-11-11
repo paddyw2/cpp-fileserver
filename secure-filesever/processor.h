@@ -53,8 +53,9 @@ int server::process_read_request(char * response, int length)
     if(status < 0) {
         // if file does not exist
         char success[TOTAL_SIZE];
-        memcpy(success, "file not found", strlen("file not found"));
-        success[LENGTH_INDEX] = strlen("file not found");
+        memcpy(success, "Error", strlen("Error"));
+        success[LENGTH_INDEX] = strlen("Error");
+        // add DNE flag
         success[LAST_INDEX] = 2;
         char enc_success[TOTAL_SIZE+BLOCK_SIZE];
         length = encrypt_text(success, TOTAL_SIZE, enc_success);
@@ -98,13 +99,18 @@ int server::process_write_request(char * response, int length)
 
     // send client success status
     if(status < 0) {
-        char success[] = "FAIL";
+        char success[TOTAL_SIZE];
+        memcpy(success, "FAIL", strlen("FAIL"));
+        success[LENGTH_INDEX] = strlen("FAIL");
+        success[LAST_INDEX] = 3;
         char enc_success[TOTAL_SIZE+BLOCK_SIZE];
         length = encrypt_text(success, strlen(success), enc_success);
         write_to_client(enc_success, length, clientsocket);
-        cerr << "FAIL" << endl;
     } else {
-        char success[] = "OK";
+        char success[TOTAL_SIZE];
+        memcpy(success, "OK", strlen("OK"));
+        success[LENGTH_INDEX] = strlen("OK");
+        success[LAST_INDEX] = 1;
         char enc_success[TOTAL_SIZE+BLOCK_SIZE];
         length = encrypt_text(success, strlen(success), enc_success);
         write_to_client(enc_success, length, clientsocket);

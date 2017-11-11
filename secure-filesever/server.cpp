@@ -69,7 +69,6 @@ int server::start_server()
         cerr << "Connected with client" << endl;
         int status = authenticate_client();
         if(status != -1) {
-            set_key_iv();
             process_client_request();
         }
         free(iv);
@@ -117,7 +116,7 @@ int server::set_key_iv()
     char concat_iv[concat_iv_len];
     memcpy(concat_iv, password, strlen(password));
     memcpy(concat_iv+strlen(password), nonce, NONCE_SIZE);
-    memcmp(concat_iv+strlen(password)+NONCE_SIZE, "IV", strlen("IV"));
+    memcpy(concat_iv+strlen(password)+NONCE_SIZE, "IV", strlen("IV"));
     iv = (unsigned char *)malloc(DIGESTSIZE);
     encryptor.get_SHA256((unsigned char *)concat_iv, concat_iv_len, iv);
 
@@ -126,7 +125,8 @@ int server::set_key_iv()
     char concat_key[concat_key_len];
     memcpy(concat_key, password, strlen(password));
     memcpy(concat_key+strlen(password), nonce, NONCE_SIZE);
-    memcmp(concat_key+strlen(password)+NONCE_SIZE, "SK", strlen("SK"));
+    memcpy(concat_key+strlen(password)+NONCE_SIZE, "SK", strlen("SK"));
+    
     key = (unsigned char *)malloc(DIGESTSIZE);
     encryptor.get_SHA256((unsigned char *)concat_key, concat_key_len, key);
 

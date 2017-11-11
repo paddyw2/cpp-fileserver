@@ -53,7 +53,7 @@ int client::make_request()
             char enc_success[strlen("OK")+BLOCK_SIZE];
             length = encrypt_text(success, strlen(success), enc_success);
             write_to_server(enc_success, length);
-            cerr << "Local: OK" << endl;
+            cerr << "OK" << endl;
         }
     } else {
         // now send stdin to server

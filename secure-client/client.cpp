@@ -60,7 +60,6 @@ client::client(int argc, char * argv[])
     if(error_flag < 0)
         error("Socket failure\n");
 
-    set_key_iv();
 }
 
 /*
@@ -86,7 +85,7 @@ int client::send_cipher_nonce()
     // concatenate strings
     memcpy(cipher_nonce, arg_cipher, strlen(arg_cipher));
     memcpy(cipher_nonce+strlen(arg_cipher), " ", 1);
-    memcpy(cipher_nonce+strlen(arg_cipher)+1, nonce, rand_size);
+    memcpy(cipher_nonce+strlen(arg_cipher)+1, sent_nonce, rand_size);
     cerr << "Sending cipher/nonce" << endl;
     write_to_server(cipher_nonce, strlen(cipher_nonce));
     free(nonce);
@@ -120,15 +119,6 @@ int client::receive_challenge()
     encryptor.get_SHA256((unsigned char *)concat, length+strlen(password), digest);
     free(concat);
     free(rand_value);
-
-    // print generated hash
-    /*
-    cerr << "Generated hash: ";
-    for(int i=0;i<DIGESTSIZE;i++) {
-        fprintf(stderr, "%0.2x", digest[i]);
-    }
-    fprintf(stderr, "\n");
-    */
 
     // send back to server
     char crypt_digest[DIGESTSIZE+BLOCK_SIZE];
@@ -248,7 +238,7 @@ int client::set_key_iv()
     char concat_iv[concat_iv_len];
     memcpy(concat_iv, password, strlen(password));
     memcpy(concat_iv+strlen(password), sent_nonce, NONCE_SIZE);
-    memcmp(concat_iv+strlen(password)+NONCE_SIZE, "IV", strlen("IV"));
+    memcpy(concat_iv+strlen(password)+NONCE_SIZE, "IV", strlen("IV"));
     iv = (unsigned char *)malloc(DIGESTSIZE);
     encryptor.get_SHA256((unsigned char *)concat_iv, concat_iv_len, iv);
 
@@ -257,7 +247,8 @@ int client::set_key_iv()
     char concat_key[concat_key_len];
     memcpy(concat_key, password, strlen(password));
     memcpy(concat_key+strlen(password), sent_nonce, NONCE_SIZE);
-    memcmp(concat_key+strlen(password)+NONCE_SIZE, "SK", strlen("SK"));
+    memcpy(concat_key+strlen(password)+NONCE_SIZE, "SK", strlen("SK"));
+
     key = (unsigned char *)malloc(DIGESTSIZE);
     encryptor.get_SHA256((unsigned char *)concat_key, concat_key_len, key);
 

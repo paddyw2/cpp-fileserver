@@ -112,7 +112,7 @@ int server::process_write_request(char * response, int length)
         success[LENGTH_INDEX] = strlen("OK");
         success[LAST_INDEX] = 1;
         char enc_success[TOTAL_SIZE+BLOCK_SIZE];
-        length = encrypt_text(success, strlen(success), enc_success);
+        length = encrypt_text(success, TOTAL_SIZE, enc_success);
         write_to_client(enc_success, length, clientsocket);
         cerr << "Sent OK" << endl;
     }

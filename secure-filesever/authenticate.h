@@ -11,8 +11,10 @@ int server::authenticate_client()
     // get nonce and cipher from client
     // and save to class variable
     int success = get_nonce_cipher();
-    if(success > 0)
+    if(success < 0)
         return success;
+
+    set_key_iv();
 
     // send a random challenge and check
     // client response is correct
@@ -62,9 +64,7 @@ int server::get_nonce_cipher()
     cerr << "Nonce: ";
     index++;
     int new_index = 0;
-    cerr << return_size << " " << index << " " << NONCE_SIZE << endl;
     while(index < return_size) {
-        cerr << "Writing to: " << new_index << endl;
         nonce[new_index] = cipher_nonce[index];
         fprintf(stderr, "%c", nonce[new_index]);
         index++;
@@ -123,14 +123,13 @@ int server::send_and_check_challenge()
     free(concat);
 
     // compare result with client response
-    cerr << "Generated hash: ";
     int success = 0;
     for(int i=0; i<DIGESTSIZE;i++) {
         if(digest[i] != (unsigned char)plain_response[i])
             success = 1;
-        printf("%0.2x", digest[i]);
+        //printf("%0.2x", digest[i]);
     }
-    printf("\n");
+    //printf("\n");
 
     return success;
 }

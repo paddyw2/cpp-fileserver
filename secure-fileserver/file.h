@@ -4,7 +4,7 @@
  * indicated by the offset parameter
  * Returns the success status of the operation
  */
-int server::get_file_128(char filename[], char * contents, int offset)
+int server::get_file_128(char filename[], char * contents, int offset, FILE * fptr)
 {
     int chunk_size;
     int last = 0;
@@ -23,16 +23,9 @@ int server::get_file_128(char filename[], char * contents, int offset)
         last = 1;
     }
 
-    // create and open file
-    FILE *fptr;
-    fptr = fopen(filename, "r");
-    if(!fptr) {
-        printf("File opening failed\n");
-        exit(EXIT_FAILURE);
-    }
     
     // seek to the offset position in the file
-    fseek(fptr, offset, SEEK_SET);
+    //fseek(fptr, offset, SEEK_SET);
 
     // read file data into contents parameter
     int status = fread(contents, sizeof(char), chunk_size, fptr);
@@ -53,7 +46,7 @@ int server::get_file_128(char filename[], char * contents, int offset)
 
     // close file and return
     // success status
-    fclose(fptr);
+    //fclose(fptr);
     return status;
 }
 
@@ -114,6 +107,14 @@ int server::get_filesize(char filename[])
  */
 int server::send_file(char * filename)
 {
+    // create and open file
+    FILE *fptr;
+    fptr = fopen(filename, "r");
+    if(!fptr) {
+        printf("File opening failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     int status = 0;
     int chunk_size = TOTAL_SIZE;
     cerr << "Sending file..." << endl;
@@ -125,7 +126,7 @@ int server::send_file(char * filename)
     while(total_read < file_size) {
         char * file_contents = (char *) malloc(TOTAL_SIZE);
         bzero(file_contents, TOTAL_SIZE);
-        int read = get_file_128(filename, file_contents, total_read);
+        int read = get_file_128(filename, file_contents, total_read, fptr);
         // check for file reading errors
         if(read < 0) {
             status = -1;
@@ -139,6 +140,7 @@ int server::send_file(char * filename)
         total_read += read;
         free(file_contents);
     }
+    fclose(fptr);
     // get client success
     return status;
 }
@@ -182,7 +184,7 @@ int server::get_file(char * filename)
         if(return_size < 1) {
             // print status
             print_time();
-            printf("status: fail\n");
+            printf("status: fail - client disconnected\n");
             status = -1;
             break;
         }
@@ -196,7 +198,7 @@ int server::get_file(char * filename)
             // last packet detected
             length = get_data_length(plaintext);
             int orig_len = length;
-
+            // write data to file
             length = fwrite(plaintext, sizeof(char), length, fptr);
             //length = write_file(filename, plaintext, length, total_written);
             // check for file writing errors
@@ -223,7 +225,13 @@ int server::get_file(char * filename)
         }
         free(response);
     }
-    fclose(fptr);
+
+    if(fclose(fptr) < 0) {
+        print_time();
+        printf("status: fail - disk space exceeded\n");
+        remove(filename);
+        status = -1;
+    }
     return status;
 }
 

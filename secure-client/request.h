@@ -64,6 +64,7 @@ int client::make_request()
         length = read_from_server(response, RECEIVE_BUFFER);
         char plain_res[length];
         length = decrypt_text(response, length, plain_res);
+        cerr << plain_res << endl;
         if(plain_res[LAST_INDEX] < 2)
             cerr << "OK" << endl;
         else

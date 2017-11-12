@@ -198,6 +198,7 @@ int client::get_server_response()
  */
 int client::send_stdin(char * filename)
 {
+    int total_written = 0;
     int chunk_size = TOTAL_SIZE;
     int flag_size = FLAG_SIZE;
     int read = chunk_size - flag_size;
@@ -211,6 +212,7 @@ int client::send_stdin(char * filename)
         // send encrypted to server
         write_to_server(enc_chunk, length);
         free(file_contents);
+        total_written += read;
     }
     char enc_chunk[chunk_size+BLOCK_SIZE];
     char end_msg[chunk_size];

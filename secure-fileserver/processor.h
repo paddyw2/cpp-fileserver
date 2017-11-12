@@ -113,9 +113,10 @@ int server::process_write_request(char * response, int length)
     printf("command:write, filename:%s\n", filename);
 
     // send client confirmation of request
-    char message[] = "You have chosen: write";
-    char enc_msg[strlen(message)+BLOCK_SIZE];
-    length = encrypt_text(message, strlen(message), enc_msg);
+    char message[TOTAL_SIZE];
+    memcpy(message, "You have chosen: write", strlen("You have chosen: write"));
+    char enc_msg[TOTAL_SIZE+BLOCK_SIZE];
+    length = encrypt_text(message, TOTAL_SIZE, enc_msg);
     int status = write_to_client(enc_msg, length, clientsocket);
     if(status < 1)
         return -1;
@@ -160,9 +161,10 @@ int server::process_write_request(char * response, int length)
  */
 int server::process_bad_request()
 {
-    char message[] = "You have chosen: ERROR";
-    char enc_msg[strlen(message)+BLOCK_SIZE];
-    int length = encrypt_text(message, strlen(message), enc_msg);
+    char message[TOTAL_SIZE];
+    memcpy(message, "You have chosen: ERROR", strlen("You have chosen: ERROR"));
+    char enc_msg[TOTAL_SIZE+BLOCK_SIZE];
+    int length = encrypt_text(message, TOTAL_SIZE, enc_msg);
     int status = write_to_client(enc_msg, length, clientsocket);
     if(status < 1)
         return -1;

@@ -135,9 +135,7 @@ int client::receive_challenge()
         exit(EXIT_FAILURE);
     }
     char plaintext[size];
-    cerr << "Getting response" << endl;
     decrypt_text(response, size, plaintext);
-    cerr << "Received" << endl;
     free(response);
 
    return 0;
@@ -173,9 +171,7 @@ int client::get_server_response()
         }
         // decrypt response 
         char plaintext_chunk[return_size];
-        cerr << "Trying..." << endl;
         int length = decrypt_text(response, return_size, plaintext_chunk);
-        cerr << "Done" << endl;
         // check for error packet
         if(plaintext_chunk[LAST_INDEX] > 1) {
             // print error packet data
@@ -247,23 +243,6 @@ int client::set_key_iv()
 
     key = (unsigned char *)malloc(DIGESTSIZE);
     encryptor.get_SHA256((unsigned char *)concat_key, concat_key_len, key);
-
-     fprintf(stderr,"nonce=");
-    for(int i=0;i<NONCE_SIZE;i++)
-        fprintf(stderr,"%0.2x", (unsigned char)sent_nonce[i]);
-    fprintf(stderr,"\n");
-
-    // print IV
-    fprintf(stderr,"IV=");
-    for(int i=0;i<DIGESTSIZE;i++)
-        fprintf(stderr,"%0.2x", iv[i]);
-    fprintf(stderr,"\n");
-    // print SK
-    fprintf(stderr,"SK=");
-    for(int i=0;i<DIGESTSIZE;i++)
-        fprintf(stderr,"%0.2x", key[i]);
-    fprintf(stderr,"\n");
-
 
     return 0;
 }

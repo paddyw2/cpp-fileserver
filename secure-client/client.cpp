@@ -126,8 +126,8 @@ int client::receive_challenge()
     write_to_server(crypt_digest, length);
 
     // get server status response
-    char * response = (char *)malloc(128);
-    size = read_from_server(response, 128);
+    char * response = (char *)malloc(RECEIVE_BUFFER);
+    size = read_from_server(response, RECEIVE_BUFFER);
 
     // if hashes do not match, then server disconnects
     if(size == 0) {
@@ -199,18 +199,24 @@ int client::send_stdin(char * filename)
     int chunk_size = TOTAL_SIZE;
     int flag_size = FLAG_SIZE;
     int read = chunk_size - flag_size;
-    while(read == chunk_size - flag_size) {
+    while(!feof(stdin)) {
         char * file_contents = (char *) malloc(chunk_size);
         bzero(file_contents, chunk_size);
         // read chunk from stdin
         read = get_stdin_128(filename, file_contents);
-        cerr << read << endl;
         char enc_chunk[chunk_size+BLOCK_SIZE];
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
         // send encrypted to server
         write_to_server(enc_chunk, length);
         free(file_contents);
     }
+    char enc_chunk[chunk_size+BLOCK_SIZE];
+    char end_msg[chunk_size];
+    // set last packet flags
+    end_msg[LENGTH_INDEX] = 0;
+    end_msg[LAST_INDEX] = 1;
+    int length = encrypt_text(end_msg, chunk_size, enc_chunk);
+    write_to_server(enc_chunk, length);
     return 0;
 }
 
@@ -310,22 +316,23 @@ int client::read_from_server(char * message, int length)
  */
 int client::get_stdin_128(char * filename, char file_contents[])
 {
+    int read = fread(file_contents, sizeof(char),DATA_SIZE,stdin);
+    // set length
+    int sub_count = read;
     int index = 0;
-    int last = 0;
-    while(index < DATA_SIZE) {
-        char val = getchar();
-        if(val == EOF) {
-            last = 1;
-            break;
-        }
-        file_contents[index] = val;
+    int max_num = 125;
+    while(sub_count - max_num > 0 && index < 9) {
+        sub_count -= max_num;
+        file_contents[LENGTH_INDEX+index] = 125;
+        file_contents[LENGTH_INDEX+index+1] = 0;
         index++;
     }
-    // set length
-    file_contents[LENGTH_INDEX] = index;
+    file_contents[LENGTH_INDEX+index] = sub_count;
+
+    //file_contents[LENGTH_INDEX] = read;
     // set last flag
-    file_contents[LAST_INDEX] = last;
-    return index;
+    file_contents[LAST_INDEX] = 0;
+    return read;
 }
 
 int client::check_cipher()

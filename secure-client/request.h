@@ -33,8 +33,8 @@ int client::make_request()
     write_to_server(enc_msg, length);
 
     // get acknowledgment back from server
-    char * response = (char *)malloc(128);
-    length = read_from_server(response, 128);
+    char * response = (char *)malloc(RECEIVE_BUFFER);
+    length = read_from_server(response, RECEIVE_BUFFER);
     char plaintext[length];
     length = decrypt_text(response, length, plaintext);
 
@@ -60,11 +60,10 @@ int client::make_request()
         send_stdin(arg_filename);
 
         // now get server success message back
-        bzero(response, 128);
-        length = read_from_server(response, 128);
+        bzero(response, RECEIVE_BUFFER);
+        length = read_from_server(response, RECEIVE_BUFFER);
         char plain_res[length];
         length = decrypt_text(response, length, plain_res);
-        plain_res[length+1] = 0;
         if(plain_res[LAST_INDEX] < 2)
             cerr << "OK" << endl;
         else

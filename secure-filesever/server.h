@@ -31,6 +31,7 @@ class server
         int get_file_128(char filename[], char * contents, int offset);
         int write_file(char filename[], char * contents, int length, int total_written);
         int process_client_request();
+        int get_data_length(char * data);
         int send_file(char * filename);
         int get_file(char * filename);
         int encrypt_text(char * plaintext, int length, char * ciphertext);

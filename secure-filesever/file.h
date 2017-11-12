@@ -170,9 +170,11 @@ int server::get_file(char * filename)
         // to be received
         if(plaintext[LAST_INDEX] == 1) {
             // last packet detected
-            length = write_file(filename, plaintext, (int)plaintext[LENGTH_INDEX], total_written);
+            length = get_data_length(plaintext);
+            int orig_len = length;
+            length = write_file(filename, plaintext, length, total_written);
             // check for file writing errors
-            if(length < (int)plaintext[LENGTH_INDEX]) {
+            if(length < orig_len) {
                 status = -1;
                 break;
             }
@@ -180,11 +182,12 @@ int server::get_file(char * filename)
             break;
         } else {
             // remove flags to get only data
-            length -= FLAG_SIZE;
+            length = get_data_length(plaintext);
+            int orig_len = length;
             // write data to file
             length = write_file(filename, plaintext, length, total_written);
             // check for file writing errors
-            if(length < (int)plaintext[LENGTH_INDEX]) {
+            if(length < orig_len) {
                 status = -1;
                 break;
             }
@@ -194,4 +197,18 @@ int server::get_file(char * filename)
         free(response);
     }
     return status;
+}
+
+int server::get_data_length(char * data)
+{
+    int max_num = 125;
+    int current = (int)data[LENGTH_INDEX];
+    int total = current;
+    int index = 0;
+    while(current == max_num) {
+        index++;
+        current = (int)data[LENGTH_INDEX+index];
+        total += current;
+    }
+    return total;
 }

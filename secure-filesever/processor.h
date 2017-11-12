@@ -60,6 +60,7 @@ int server::process_read_request(char * response, int length)
     // send client failure status or wait for
     // confirmation of success from client
     if(send_status < 0) {
+        cerr << "Sending failure" << endl;
         // if file does not exist
         char success[TOTAL_SIZE];
         memcpy(success, "Error", strlen("Error"));
@@ -123,6 +124,7 @@ int server::process_write_request(char * response, int length)
 
     // send client success status
     if(get_status < 0) {
+        cerr << "Sending fail" << endl;
         char success[TOTAL_SIZE];
         memcpy(success, "FAIL", strlen("FAIL"));
         success[LENGTH_INDEX] = strlen("FAIL");
@@ -133,6 +135,7 @@ int server::process_write_request(char * response, int length)
         if(status < 1)
             return -1;
     } else {
+        cerr << "Sending success" << endl;
         char success[TOTAL_SIZE];
         memcpy(success, "OK", strlen("OK"));
         success[LENGTH_INDEX] = strlen("OK");

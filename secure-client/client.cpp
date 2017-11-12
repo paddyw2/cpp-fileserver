@@ -317,11 +317,12 @@ int client::read_from_server(char * message, int length)
 int client::get_stdin_128(char * filename, char file_contents[])
 {
     int read = fread(file_contents, sizeof(char),DATA_SIZE,stdin);
+    //fwrite(file_contents, sizeof(char), read, stdout);
     // set length
     int sub_count = read;
     int index = 0;
     int max_num = 125;
-    while(sub_count - max_num > 0 && index < 9) {
+    while(sub_count - max_num > 0) {
         sub_count -= max_num;
         file_contents[LENGTH_INDEX+index] = 125;
         file_contents[LENGTH_INDEX+index+1] = 0;

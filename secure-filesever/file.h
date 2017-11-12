@@ -141,6 +141,20 @@ int server::send_file(char * filename)
  */
 int server::get_file(char * filename)
 {
+
+    // create and open file
+    FILE *fptr;
+    fptr = fopen(filename, "a");
+
+    if(!fptr) {
+        fptr = fopen(filename, "w");
+        if(!fptr) {
+            printf("File opening failed\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    //---------//
     cerr << "Receiving file..." << endl;
     int status = 0;
     // calculate size to read
@@ -172,7 +186,9 @@ int server::get_file(char * filename)
             // last packet detected
             length = get_data_length(plaintext);
             int orig_len = length;
-            length = write_file(filename, plaintext, length, total_written);
+
+            length = fwrite(plaintext, sizeof(char), length, fptr);
+            //length = write_file(filename, plaintext, length, total_written);
             // check for file writing errors
             if(length < orig_len) {
                 status = -1;
@@ -185,7 +201,8 @@ int server::get_file(char * filename)
             length = get_data_length(plaintext);
             int orig_len = length;
             // write data to file
-            length = write_file(filename, plaintext, length, total_written);
+            length = fwrite(plaintext, sizeof(char), length, fptr);
+            //length = write_file(filename, plaintext, length, total_written);
             // check for file writing errors
             if(length < orig_len) {
                 status = -1;
@@ -196,6 +213,7 @@ int server::get_file(char * filename)
         }
         free(response);
     }
+    fclose(fptr);
     return status;
 }
 

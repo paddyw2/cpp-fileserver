@@ -209,7 +209,7 @@ int client::send_stdin(char * filename)
         char * file_contents = (char *) malloc(chunk_size);
         bzero(file_contents, chunk_size);
         // read chunk from stdin
-        read = get_stdin_128(filename, file_contents);
+        read = get_stdin_128(file_contents);
         char enc_chunk[chunk_size+BLOCK_SIZE];
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
         // send encrypted to server
@@ -321,7 +321,7 @@ int client::read_from_server(char * message, int length)
  * Returns size of data chunk
  * read
  */
-int client::get_stdin_128(char * filename, char file_contents[])
+int client::get_stdin_128(char file_contents[])
 {
     int read = fread(file_contents, sizeof(char),DATA_SIZE,stdin);
     //fwrite(file_contents, sizeof(char), read, stdout);
@@ -335,6 +335,9 @@ int client::get_stdin_128(char * filename, char file_contents[])
         file_contents[LENGTH_INDEX+index+1] = 0;
         index++;
     }
+    cerr << "----" << endl;
+    cerr << TOTAL_SIZE << endl;
+    cerr << read << endl;
     cerr << LENGTH_INDEX+index << endl;
     cerr << LAST_INDEX << endl;
     file_contents[LENGTH_INDEX+index] = sub_count;

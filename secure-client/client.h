@@ -29,7 +29,7 @@ class client
         int set_key_iv();
         int encrypt_text(char * plaintext, int length, char * ciphertext);
         int decrypt_text(char * ciphertext, int length, char * plaintext);
-        int get_stdin_128(char * filename, char file_contents[]);
+        int get_stdin_128(char file_contents[]);
         int send_stdin(char * filename);
         int check_cipher();
         int close_socket();

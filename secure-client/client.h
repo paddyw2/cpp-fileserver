@@ -34,6 +34,7 @@ class client
         int check_cipher();
         int close_socket();
         int get_data_length(char * data);
+        int convert_hostname_ip(char * target_ip, int target_size, char * dest_url);
 
     private:
         int serversocket;

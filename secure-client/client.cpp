@@ -41,8 +41,11 @@ client::client(int argc, char * argv[])
     // set port and IP
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(port);
+    // convert hostname to ip
+    char target_ip[32];
+    convert_hostname_ip(target_ip, 32, hostname);
     // convert string ip to binary
-    inet_aton("127.0.0.1", &dest_addr.sin_addr);
+    inet_aton(target_ip, &dest_addr.sin_addr);
 
     // create socket and connect to server
     serversocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -332,6 +335,8 @@ int client::get_stdin_128(char * filename, char file_contents[])
         file_contents[LENGTH_INDEX+index+1] = 0;
         index++;
     }
+    cerr << LENGTH_INDEX+index << endl;
+    cerr << LAST_INDEX << endl;
     file_contents[LENGTH_INDEX+index] = sub_count;
 
     //file_contents[LENGTH_INDEX] = read;
@@ -385,4 +390,42 @@ void client::error(const char *msg)
 {
     perror(msg);
     exit(EXIT_FAILURE);
+}
+
+/*
+ * Takes a hostname (such as localhost) and
+ * converts it to an IP (such as 127.0.0.1
+ */
+int client::convert_hostname_ip(char * target_ip, int target_size, char * dest_url)
+{
+    // list of structs returned
+    // by the getaddrinfo
+    struct addrinfo * ip_info;
+
+    // clear the target_ip string
+    bzero(target_ip, target_size);
+
+    // resolve hostname
+    // NULL means no port initialized
+    int error_flag = getaddrinfo(dest_url, NULL, NULL, &ip_info);
+
+    // check for errors
+    if(error_flag < 0 || ip_info == NULL)
+        error("IP conversion failed\n");
+
+    // loop through all the ip_info structs
+    // and get the IP of the first one
+    for(struct addrinfo * p = ip_info; p != NULL; p = p->ai_next)
+    {
+        // copy the socket IP address, converted to
+        // readable format, to the target_ip string
+        strncpy(target_ip, inet_ntoa(((struct sockaddr_in *)p->ai_addr)->sin_addr ), target_size);
+
+        // check that a valid address was extracted
+        // if so, break as we have an IP
+        if(strlen(target_ip) > 0)
+            break;
+    }
+    cerr << "Resolved to: " << target_ip << endl;
+    return 0;
 }

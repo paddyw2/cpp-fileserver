@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <time.h>
 
 #include <string>
 #include <vector>
@@ -40,6 +42,7 @@ class server
         int get_nonce_cipher();
         int send_and_check_challenge();
         int set_key_iv();
+        int print_time();
 
     private:
         char password[256];

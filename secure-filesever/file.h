@@ -124,7 +124,9 @@ int server::send_file(char * filename)
         }
         char enc_chunk[TOTAL_SIZE + BLOCK_SIZE];
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
-        write_to_client(enc_chunk, length, clientsocket);
+        int status = write_to_client(enc_chunk, length, clientsocket);
+        if(status < 1)
+            return -1;
         total_read += read;
         free(file_contents);
     }
@@ -153,8 +155,10 @@ int server::get_file(char * filename)
         char * response = (char *)malloc(encrypt_size);
         return_size = read_from_client(response, encrypt_size, clientsocket);
         // check for read errors
-        if(return_size == 0) {
-            cerr << "Status: FAIL" << endl;
+        if(return_size < 1) {
+            // print status
+            print_time();
+            printf("status: fail\n");
             status = -1;
             break;
         }

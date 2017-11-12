@@ -49,9 +49,9 @@ int client::make_request()
             length = encrypt_text(success, strlen(success), enc_success);
             write_to_server(enc_success, length);
         } else {
-            char success[] = "OK";
-            char enc_success[strlen("OK")+BLOCK_SIZE];
-            length = encrypt_text(success, strlen(success), enc_success);
+            char success[] = "success";
+            char enc_success[strlen(success)+1+BLOCK_SIZE];
+            length = encrypt_text(success, strlen(success)+1, enc_success);
             write_to_server(enc_success, length);
             cerr << "OK" << endl;
         }

@@ -23,6 +23,8 @@ int server::authenticate_client()
     // indicate success status to client
     if(success == 1) {
         cerr << "Client authentication failed" << endl;
+        print_time();
+        cout << "status: fail - bad key" << endl;
         return -1;
     } else {
         cerr << "Client authenticated" << endl;
@@ -30,7 +32,9 @@ int server::authenticate_client()
         cerr << "Sending success..." << endl;
         char enc_success[strlen(success)+BLOCK_SIZE];
         int length = encrypt_text(success, strlen(success), enc_success);
-        write_to_client(enc_success, length, clientsocket);
+        int status = write_to_client(enc_success, length, clientsocket);
+        if(status < 1)
+            return -1;
     }
     // indicate authentication successfull
     return 0;
@@ -46,27 +50,31 @@ int server::get_nonce_cipher()
     // get plaintext nonce cipher message
     char * cipher_nonce = (char *) calloc(RECEIVE_BUFFER, sizeof(char));
     int return_size = read_from_client(cipher_nonce, RECEIVE_BUFFER-1, clientsocket);
+    if(return_size < 1)
+        return -1;
     // parse and extract nonce and cipher
     // information from message
     // extract cipher
     int index = 0;
     while(cipher_nonce[index] != ' ') {
         cipher[index] = cipher_nonce[index];
+        printf("%c", cipher[index]);
         index++;
         if(index >= 31) {
             cerr << "Bad cipher" << endl;
             return -1;
         }
     }
+    printf("\n");
     cipher[index] = 0;
-    cerr << "Cipher: " << cipher << endl;
     // now extract nonce
-    cerr << "Nonce: ";
+    print_time();
+    cout << "nonce=";
     index++;
     int new_index = 0;
     while(index < return_size) {
         nonce[new_index] = cipher_nonce[index];
-        fprintf(stderr, "%c", nonce[new_index]);
+        printf("%0.2x", (unsigned char)nonce[new_index]);
         index++;
         new_index++;
         if(new_index >= 31) {
@@ -74,7 +82,7 @@ int server::get_nonce_cipher()
             return -1;
         }
     }
-    fprintf(stderr, "\n");
+    printf("\n");
     // extraction successful
     nonce_length = new_index;
     free(cipher_nonce);
@@ -103,11 +111,14 @@ int server::send_and_check_challenge()
     // send random number to client as challenge
     char enc_challenge[rand_size+BLOCK_SIZE];
     int length = encrypt_text((char *)rand_challenge, rand_size, enc_challenge);
-    write_to_client(enc_challenge, length, clientsocket);
-
+    int status = write_to_client(enc_challenge, length, clientsocket);
+    if(status < 1)
+        return 1;
     // read their response
     char * chal_response = (char *) calloc(DIGESTSIZE+BLOCK_SIZE, sizeof(char));
     int return_size = read_from_client(chal_response, DIGESTSIZE+BLOCK_SIZE, clientsocket);
+    if(return_size == 0)
+        return 1;
     char plain_response[return_size];
     length = decrypt_text(chal_response, return_size, plain_response);
 
@@ -127,9 +138,7 @@ int server::send_and_check_challenge()
     for(int i=0; i<DIGESTSIZE;i++) {
         if(digest[i] != (unsigned char)plain_response[i])
             success = 1;
-        //printf("%0.2x", digest[i]);
     }
-    //printf("\n");
 
     return success;
 }

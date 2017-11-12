@@ -9,8 +9,10 @@
  */
 client::client(int argc, char * argv[])
 {
-    if(argc < 7)
-        error("Not enough arguments\n");
+    if(argc < 7) {
+        cerr << "Error: not enough arguments" << endl;
+        exit(EXIT_FAILURE);
+    }
 
     // get command
     bzero(arg_command, 32);
@@ -32,11 +34,6 @@ client::client(int argc, char * argv[])
     // get key
     bzero(password, 256);
     memcpy(password, argv[6], 256);
-
-    // print info
-    cerr << "Host: " << hostname << endl;
-    cerr << "Port: " << port << endl;
-    cerr << "Password: " << password << endl;
 
     struct sockaddr_in dest_addr;
     int error_flag;
@@ -73,20 +70,23 @@ int client::send_cipher_nonce()
     int rand_size = NONCE_SIZE;
     unsigned char *nonce = (unsigned char *)calloc(rand_size, sizeof(unsigned char));
     if (!RAND_bytes(nonce, rand_size)) {
-        fprintf(stderr, "Nonce generation error");
-        exit(EXIT_FAILURE);
+        error("Nonce generation error");
     }
+
     // save to class variable
     memcpy(sent_nonce, nonce, rand_size);
     int message_len = strlen(arg_cipher) + rand_size + 1;
+
     // create cipher nonce message
     char cipher_nonce[message_len];
     bzero(cipher_nonce, message_len);
+
     // concatenate strings
     memcpy(cipher_nonce, arg_cipher, strlen(arg_cipher));
     memcpy(cipher_nonce+strlen(arg_cipher), " ", 1);
     memcpy(cipher_nonce+strlen(arg_cipher)+1, sent_nonce, rand_size);
-    cerr << "Sending cipher/nonce" << endl;
+
+    // send plaintext message to server
     write_to_server(cipher_nonce, strlen(cipher_nonce));
     free(nonce);
     return 0;
@@ -128,8 +128,9 @@ int client::receive_challenge()
     // get server status response
     char * response = (char *)malloc(128);
     size = read_from_server(response, 128);
-    // if failed, then server disconnects
-    if(size <= 0) {
+
+    // if hashes do not match, then server disconnects
+    if(size == 0) {
         cerr << "Error: wrong key" << endl;
         exit(EXIT_FAILURE);
     }
@@ -146,7 +147,6 @@ int client::receive_challenge()
  */
 int client::get_server_response()
 {
-    cerr << "Receiving..." << endl;
     int status = 0;
 
     // calculate size to read
@@ -199,12 +199,12 @@ int client::send_stdin(char * filename)
     int chunk_size = TOTAL_SIZE;
     int flag_size = FLAG_SIZE;
     int read = chunk_size - flag_size;
-    cerr << "Sending file..." << endl;
     while(read == chunk_size - flag_size) {
         char * file_contents = (char *) malloc(chunk_size);
         bzero(file_contents, chunk_size);
         // read chunk from stdin
         read = get_stdin_128(filename, file_contents);
+        cerr << read << endl;
         char enc_chunk[chunk_size+BLOCK_SIZE];
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
         // send encrypted to server
@@ -212,22 +212,6 @@ int client::send_stdin(char * filename)
         free(file_contents);
     }
     return 0;
-}
-
-/*
- * Encrypt plaintext using chosen cipher
- */
-int client::encrypt_text(char * plaintext, int length, char * ciphertext)
-{
-    int ciphertext_len;
-    // aes256
-    encryption encryptor(arg_cipher);
-    /* A 256 bit key */
-    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-    /* A 128 bit IV */
-    //unsigned char *iv = (unsigned char *)"0123456789012345";
-    ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
-    return ciphertext_len;
 }
 
 int client::set_key_iv()
@@ -253,6 +237,22 @@ int client::set_key_iv()
     encryptor.get_SHA256((unsigned char *)concat_key, concat_key_len, key);
 
     return 0;
+}
+
+/*
+ * Encrypt plaintext using chosen cipher
+ */
+int client::encrypt_text(char * plaintext, int length, char * ciphertext)
+{
+    int ciphertext_len;
+    // aes256
+    encryption encryptor(arg_cipher);
+    /* A 256 bit key */
+    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+    /* A 128 bit IV */
+    //unsigned char *iv = (unsigned char *)"0123456789012345";
+    ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
+    return ciphertext_len;
 }
 
 /*
@@ -312,7 +312,7 @@ int client::get_stdin_128(char * filename, char file_contents[])
 {
     int index = 0;
     int last = 0;
-    while(index < 14) {
+    while(index < DATA_SIZE) {
         char val = getchar();
         if(val == EOF) {
             last = 1;
@@ -322,9 +322,9 @@ int client::get_stdin_128(char * filename, char file_contents[])
         index++;
     }
     // set length
-    file_contents[14] = index;
+    file_contents[LENGTH_INDEX] = index;
     // set last flag
-    file_contents[15] = last;
+    file_contents[LAST_INDEX] = last;
     return index;
 }
 
@@ -337,8 +337,9 @@ int client::check_cipher()
     else if(strncmp(arg_cipher, "null", strlen("null")) == 0)
         return 0;
     else
-        error("ERROR: Invalid cipher\n");
+        cerr << "Error: invalid cipher" << endl;
 
+    exit(EXIT_FAILURE);
     return -1;
 }
 

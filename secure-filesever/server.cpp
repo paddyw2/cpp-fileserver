@@ -66,11 +66,14 @@ int server::start_server()
            continue;
         }
 
-        cerr << "Connected with client" << endl;
+        print_time();
+        printf("New connection from: %s", inet_ntoa(cli_addr.sin_addr));
+        printf(" cipher=");
         int status = authenticate_client();
         if(status != -1) {
             process_client_request();
         }
+        cerr << "made it" << endl;
         free(iv);
         free(key);
         close(clientsocket);
@@ -90,7 +93,7 @@ int server::write_to_client(char * message, int length, int client)
     // error check
     if (error_flag < 0)
         error("ERROR writing to socket\n");
-    return 0;
+    return error_flag;
 }
 
 /*
@@ -109,7 +112,6 @@ int server::read_from_client(char * message, int length, int client)
 
 int server::set_key_iv()
 {
-    cerr << "Creating keys..." << endl;
     encryption encryptor;
     // concat = (password | nonce | "IV")
     int concat_iv_len = strlen(password) + NONCE_SIZE + strlen("IV");
@@ -130,13 +132,26 @@ int server::set_key_iv()
     key = (unsigned char *)malloc(DIGESTSIZE);
     encryptor.get_SHA256((unsigned char *)concat_key, concat_key_len, key);
 
-    cerr << "Created..." << endl;
+    // print IV
+    print_time();
+    printf("IV=");
+    for(int i=0;i<DIGESTSIZE;i++)
+        printf("%0.2x", iv[i]);
+    printf("\n");
+    // print SK
+    print_time();
+    printf("SK=");
+    for(int i=0;i<DIGESTSIZE;i++)
+        printf("%0.2x", key[i]);
+    printf("\n");
+
     return 0;
 }
 
 
 int server::encrypt_text(char * plaintext, int length, char * ciphertext)
 {
+    cerr << "Encrypting..." << endl;
     int ciphertext_len;
     // aes256
     encryption encryptor(cipher);
@@ -150,6 +165,7 @@ int server::encrypt_text(char * plaintext, int length, char * ciphertext)
 
 int server::decrypt_text(char * ciphertext, int length, char * plaintext)
 {
+    cerr << "Decrypting..." << endl;
     int plaintext_len;
     // aes256
     encryption encryptor(cipher);
@@ -158,7 +174,23 @@ int server::decrypt_text(char * ciphertext, int length, char * plaintext)
     /* A 128 bit IV */
     //unsigned char *iv = (unsigned char *)"0123456789012345";
     plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
+    cerr << "Finished decrypting" << endl;
     return plaintext_len;
+}
+
+int server::print_time()
+{
+    time_t timer;
+    char buffer[26];
+    struct tm* tm_info;
+
+    time(&timer);
+    tm_info = localtime(&timer);
+
+    strftime(buffer, 26, "%H:%M:%S", tm_info);
+    printf("%s ", buffer);
+
+    return 0;
 }
 
 

@@ -1,8 +1,8 @@
 #define NONCE_SIZE 16
 #define DIGESTSIZE 32
+#define BLOCK_SIZE 16
 #define RECEIVE_BUFFER 128
 #define ENCRYPTED_SIZE 32
-#define BLOCK_SIZE 16
 #define TOTAL_SIZE 16
 #define FLAG_SIZE 2
 #define DATA_SIZE 14

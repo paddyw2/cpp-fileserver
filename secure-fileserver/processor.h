@@ -46,16 +46,17 @@ int server::process_read_request(char * response, int length)
     printf("command:read, filename:%s\n", filename);
 
     // send client confirmation of request
-    char message[] = "You have chosen: read";
-    char enc_msg[strlen(message)+BLOCK_SIZE];
-    length = encrypt_text(message, strlen(message), enc_msg);
+    char message[TOTAL_SIZE];
+    memcpy(message, "You have chosen: read", strlen("You have chosen: read"));
+    char enc_msg[TOTAL_SIZE+BLOCK_SIZE];
+    length = encrypt_text(message, TOTAL_SIZE, enc_msg);
+    cerr << "Sending " << length << endl;
     int status = write_to_client(enc_msg, length, clientsocket);
     if(status < 1)
         return -1;
 
     // send client their file
     int send_status = send_file(filename);
-    cerr << send_status << endl;
 
     // send client failure status or wait for
     // confirmation of success from client

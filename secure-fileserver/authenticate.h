@@ -50,6 +50,7 @@ int server::get_nonce_cipher()
     // get plaintext nonce cipher message
     char * cipher_nonce = (char *) calloc(RECEIVE_BUFFER, sizeof(char));
     int return_size = read_from_client(cipher_nonce, RECEIVE_BUFFER-1, clientsocket);
+    cerr << return_size << endl;
     if(return_size < 1)
         return -1;
     // parse and extract nonce and cipher
@@ -72,7 +73,7 @@ int server::get_nonce_cipher()
     cout << "nonce=";
     index++;
     int new_index = 0;
-    while(index < return_size) {
+    while(new_index < NONCE_SIZE) {
         nonce[new_index] = cipher_nonce[index];
         printf("%0.2x", (unsigned char)nonce[new_index]);
         index++;

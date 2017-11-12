@@ -87,7 +87,7 @@ int client::send_cipher_nonce()
     memcpy(cipher_nonce+strlen(arg_cipher)+1, sent_nonce, rand_size);
 
     // send plaintext message to server
-    write_to_server(cipher_nonce, strlen(cipher_nonce));
+    write_to_server(cipher_nonce, message_len);
     free(nonce);
     return 0;
 }
@@ -135,7 +135,9 @@ int client::receive_challenge()
         exit(EXIT_FAILURE);
     }
     char plaintext[size];
+    cerr << "Getting response" << endl;
     decrypt_text(response, size, plaintext);
+    cerr << "Received" << endl;
     free(response);
 
    return 0;
@@ -164,10 +166,16 @@ int client::get_server_response()
             cerr << "Error: server disconnected" << endl;
             status = -1;
             break;
+        } else if(return_size != ENCRYPTED_SIZE) {
+            cerr << "Bad response" << endl;
+            status = -1;
+            break;
         }
-        // decrypt response
+        // decrypt response 
         char plaintext_chunk[return_size];
+        cerr << "Trying..." << endl;
         int length = decrypt_text(response, return_size, plaintext_chunk);
+        cerr << "Done" << endl;
         // check for error packet
         if(plaintext_chunk[LAST_INDEX] > 1) {
             // print error packet data
@@ -177,9 +185,7 @@ int client::get_server_response()
             break;
         }
         // if normal packet, print to stdout
-        for(int i=0;i<(int)plaintext_chunk[LENGTH_INDEX];i++) {
-            printf("%c", plaintext_chunk[i]);
-        }
+        fwrite(plaintext_chunk, sizeof(char), get_data_length(plaintext_chunk), stdout);
         // if packet was last packet, break loop
         if(plaintext_chunk[LAST_INDEX] == 1)
             break;
@@ -241,6 +247,23 @@ int client::set_key_iv()
 
     key = (unsigned char *)malloc(DIGESTSIZE);
     encryptor.get_SHA256((unsigned char *)concat_key, concat_key_len, key);
+
+     fprintf(stderr,"nonce=");
+    for(int i=0;i<NONCE_SIZE;i++)
+        fprintf(stderr,"%0.2x", (unsigned char)sent_nonce[i]);
+    fprintf(stderr,"\n");
+
+    // print IV
+    fprintf(stderr,"IV=");
+    for(int i=0;i<DIGESTSIZE;i++)
+        fprintf(stderr,"%0.2x", iv[i]);
+    fprintf(stderr,"\n");
+    // print SK
+    fprintf(stderr,"SK=");
+    for(int i=0;i<DIGESTSIZE;i++)
+        fprintf(stderr,"%0.2x", key[i]);
+    fprintf(stderr,"\n");
+
 
     return 0;
 }
@@ -349,6 +372,20 @@ int client::check_cipher()
 
     exit(EXIT_FAILURE);
     return -1;
+}
+
+int client::get_data_length(char * data)
+{
+    int max_num = 125;
+    int current = (int)data[LENGTH_INDEX];
+    int total = current;
+    int index = 0;
+    while(current == max_num) {
+        index++;
+        current = (int)data[LENGTH_INDEX+index];
+        total += current;
+    }
+    return total;
 }
 
 /*

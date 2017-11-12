@@ -39,7 +39,16 @@ int server::get_file_128(char filename[], char * contents, int offset)
     // set appropriate flags indicating
     // the size of data read, and whether
     // or not it is the end of the file
-    contents[LENGTH_INDEX] = chunk_size;
+    int sub_count = status;
+    int index = 0;
+    int max_num = 125;
+    while(sub_count - max_num > 0) {
+        sub_count -= max_num;
+        contents[LENGTH_INDEX+index] = 125;
+        contents[LENGTH_INDEX+index+1] = 0;
+        index++;
+    }
+    contents[LENGTH_INDEX+index] = sub_count;
     contents[LAST_INDEX] = last;
 
     // close file and return
@@ -142,12 +151,13 @@ int server::send_file(char * filename)
 int server::get_file(char * filename)
 {
 
+    remove(filename);
     // create and open file
     FILE *fptr;
     fptr = fopen(filename, "a");
 
     if(!fptr) {
-        fptr = fopen(filename, "w");
+        //fptr = fopen(filename, "w");
         if(!fptr) {
             printf("File opening failed\n");
             exit(EXIT_FAILURE);

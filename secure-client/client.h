@@ -33,6 +33,7 @@ class client
         int send_stdin(char * filename);
         int check_cipher();
         int close_socket();
+        int get_data_length(char * data);
 
     private:
         int serversocket;

@@ -36,7 +36,9 @@ int client::make_request()
     char * response = (char *)malloc(RECEIVE_BUFFER);
     length = read_from_server(response, RECEIVE_BUFFER);
     char plaintext[length];
+    cerr << "Getting server" << length << endl;
     length = decrypt_text(response, length, plaintext);
+    cerr << "Got server ack" << endl;
 
     if(strncmp(command, "read", 4) == 0) {
         // now output server response to stdout

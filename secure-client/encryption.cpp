@@ -165,8 +165,10 @@ int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
 
   if(protocol == 0) {
       // aes256 cipher
-    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
+        fprintf(stderr,"%d\n", ciphertext_len);
         decryption_error();
+    }
   } else if(protocol == 1) {
       // aes128 cipher
     if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))

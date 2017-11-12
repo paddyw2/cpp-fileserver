@@ -29,7 +29,6 @@ class server
         int authenticate_client(); 
         int get_filesize(char filename[]);
         int get_file_128(char filename[], char * contents, int offset, FILE * fptr);
-        int write_file(char filename[], char * contents, int length, int total_written);
         int process_client_request();
         int get_data_length(char * data);
         int send_file(char * filename);

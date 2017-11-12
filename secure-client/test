@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+for script in "aes256" #"aes128" "null"
+do
+
+    # write tests, each 10 times
+    # 1KB
+    echo "1KB write $script:"
+    for i in {1..10}
+    do
+        time cat /home/profs/pfederl/Teaching/CPSC526/A4/1KB.bin | ./client write TAR localhost 8080 $script secret123
+        rm ../secure-fileserver/TAR
+    done
+    # 1MB
+    echo "1MB write $script:"
+    for i in {1..10}
+    do
+        time cat /home/profs/pfederl/Teaching/CPSC526/A4/1MB.bin | ./client write TAR localhost 8080 $script secret123
+        rm ../secure-fileserver/TAR
+    done
+    # 1GB
+    echo "1GB write $script:"
+    for i in {1..10}
+    do
+        time cat /home/profs/pfederl/Teaching/CPSC526/A4/1GB.bin | ./client write TAR localhost 8080 $script secret123
+        rm ../secure-fileserver/TAR
+    done
+
+    # read tests, each 10 times
+    # 1KB
+    echo "1KB read $script:"
+    cp /home/profs/pfederl/Teaching/CPSC526/A4/1KB.bin ../secure-fileserver
+    for i in {1..10}
+    do
+        time ./client read 1KB.bin localhost 8080 $script secret123 | sha256sum
+    done
+    rm ../secure-fileserver/1KB.bin
+    # 1MB
+    echo "1MB read $script:"
+    cp /home/profs/pfederl/Teaching/CPSC526/A4/1MB.bin ../secure-fileserver
+    for i in {1..10}
+    do
+        time ./client read 1MB.bin localhost 8080 $script secret123 | sha256sum
+    done
+    rm ../secure-fileserver/1MB.bin
+    # 1GB
+    echo "1GB read $script:"
+    cp /home/profs/pfederl/Teaching/CPSC526/A4/1GB.bin ../secure-fileserver
+    for i in {1..10}
+    do
+        time ./client read 1GB.bin localhost 8080 $script secret123 | sha256sum
+    done
+    rm ../secure-fileserver/1GB.bin
+done

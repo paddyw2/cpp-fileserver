@@ -23,10 +23,6 @@ int server::get_file_128(char filename[], char * contents, int offset, FILE * fp
         last = 1;
     }
 
-    
-    // seek to the offset position in the file
-    //fseek(fptr, offset, SEEK_SET);
-
     // read file data into contents parameter
     int status = fread(contents, sizeof(char), chunk_size, fptr);
     // set appropriate flags indicating
@@ -44,40 +40,7 @@ int server::get_file_128(char filename[], char * contents, int offset, FILE * fp
     contents[LENGTH_INDEX+index] = sub_count;
     contents[LAST_INDEX] = last;
 
-    // close file and return
     // success status
-    //fclose(fptr);
-    return status;
-}
-
-/*
- * Writes length amount of data from the contents location
- * to a file of name filename
- * Uses the total_written variable to determine whether to
- * append or create a new file
- * Returns the success status of the function
- */
-int server::write_file(char filename[], char * contents, int length, int total_written)
-{
-    int status;
-    // create and open file
-    FILE *fptr;
-    fptr = fopen(filename, "a");
-
-    if(!fptr || total_written == 0) {
-        if(total_written == 0)
-            fclose(fptr);
-        fptr = fopen(filename, "w");
-        if(!fptr) {
-            printf("File opening failed\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-    // use size to allocate memory to
-    // file buffer
-    status = fwrite(contents, sizeof(char), length, fptr);
-    // close file
-    fclose(fptr);
     return status;
 }
 
@@ -184,6 +147,16 @@ int server::get_file(char * filename)
             printf("status: fail - client disconnected\n");
             status = -1;
             break;
+        } else if(return_size != encrypt_size) {
+            // if full packet not received
+            // fixes bad key error
+            int subtotal = return_size;
+            while(subtotal < ENCRYPTED_SIZE) {
+                return_size = read_from_client(response+subtotal, encrypt_size-subtotal, clientsocket);
+                subtotal += return_size;
+            }
+            return_size = subtotal;
+            cerr << "Finally got: " << subtotal << " orig: " << ENCRYPTED_SIZE << endl;
         }
         // decrypt data block
         char plaintext[return_size];

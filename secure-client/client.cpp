@@ -168,9 +168,15 @@ int client::get_server_response()
             status = -1;
             break;
         } else if(return_size != ENCRYPTED_SIZE) {
-            cerr << "Bad response" << endl;
-            status = -1;
-            break;
+            // if full packet not received
+            // fixes bad key error
+            int subtotal = return_size;
+            while(subtotal < ENCRYPTED_SIZE) {
+                return_size = read_from_server(response+subtotal, encrypt_size-subtotal);
+                subtotal += return_size;
+            }
+            return_size = subtotal;
+            cerr << "Finally got: " << subtotal << " orig: " << ENCRYPTED_SIZE << endl;
         }
         // decrypt response 
         char plaintext_chunk[return_size];
@@ -212,8 +218,11 @@ int client::send_stdin(char * filename)
         read = get_stdin_128(file_contents);
         char enc_chunk[chunk_size+BLOCK_SIZE];
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
+        cerr << "Enc size: " << length << endl;
         // send encrypted to server
-        write_to_server(enc_chunk, length);
+        int sent = write_to_server(enc_chunk, length);
+        cerr << "Sent: " << sent << endl;
+        cerr << "(chunk) " << chunk_size << " " << TOTAL_SIZE << endl;
         free(file_contents);
         total_written += read;
     }
@@ -297,7 +306,7 @@ int client::write_to_server(char * message, int length)
     if (error_flag < 0)
         error("ERROR writing to socket");
 
-    return 0;
+    return error_flag;
 }
 
 /*
@@ -335,14 +344,12 @@ int client::get_stdin_128(char file_contents[])
         index++;
     }
 
-    /* Debugging
     cerr << "----" << endl;
     cerr << TOTAL_SIZE << endl;
     cerr << read << endl;
     cerr << LENGTH_INDEX+index << endl;
     cerr << LAST_INDEX << endl;
     file_contents[LENGTH_INDEX+index] = sub_count;
-    */
 
     // set last flag
     file_contents[LAST_INDEX] = 0;

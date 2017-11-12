@@ -117,7 +117,6 @@ int server::send_file(char * filename)
 
     int status = 0;
     int chunk_size = TOTAL_SIZE;
-    cerr << "Sending file..." << endl;
     int file_size = get_filesize(filename);
     // check for file errors
     if(file_size < 0)
@@ -166,8 +165,6 @@ int server::get_file(char * filename)
         }
     }
 
-    cerr << "Receiving file..." << endl;
-    cerr << "Receiving file..." << endl;
     int status = 0;
     // calculate size to read
     int encrypt_size = ENCRYPTED_SIZE;
@@ -180,7 +177,6 @@ int server::get_file(char * filename)
         // get block of encrypted data from client
         char * response = (char *)malloc(encrypt_size);
         return_size = read_from_client(response, encrypt_size, clientsocket);
-        cerr << "R: " << return_size << endl;
         // check for read errors
         if(return_size < 1) {
             // print status
@@ -192,7 +188,6 @@ int server::get_file(char * filename)
         // decrypt data block
         char plaintext[return_size];
         int length = decrypt_text(response, return_size, plaintext);
-        cerr << "L: " << length << endl;
 
         // parse to check if it is the last block
         // to be received

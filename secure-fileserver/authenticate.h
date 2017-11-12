@@ -22,16 +22,14 @@ int server::authenticate_client()
 
     // indicate success status to client
     if(success == 1) {
-        cerr << "Client authentication failed" << endl;
         print_time();
         cout << "status: fail - bad key" << endl;
         return -1;
     } else {
-        cerr << "Client authenticated" << endl;
-        char success[] = "You are authed\n";
-        cerr << "Sending success..." << endl;
-        char enc_success[strlen(success)+BLOCK_SIZE];
-        int length = encrypt_text(success, strlen(success), enc_success);
+        char success[TOTAL_SIZE];
+        memcpy(success, "You are authed", strlen("You are authed"));
+        char enc_success[TOTAL_SIZE+BLOCK_SIZE];
+        int length = encrypt_text(success, TOTAL_SIZE, enc_success);
         int status = write_to_client(enc_success, length, clientsocket);
         if(status < 1)
             return -1;
@@ -50,7 +48,6 @@ int server::get_nonce_cipher()
     // get plaintext nonce cipher message
     char * cipher_nonce = (char *) calloc(RECEIVE_BUFFER, sizeof(char));
     int return_size = read_from_client(cipher_nonce, RECEIVE_BUFFER-1, clientsocket);
-    cerr << return_size << endl;
     if(return_size < 1)
         return -1;
     // parse and extract nonce and cipher
@@ -62,7 +59,7 @@ int server::get_nonce_cipher()
         printf("%c", cipher[index]);
         index++;
         if(index >= 31) {
-            cerr << "Bad cipher" << endl;
+            cout << "error" << endl;
             return -1;
         }
     }
@@ -79,7 +76,7 @@ int server::get_nonce_cipher()
         index++;
         new_index++;
         if(new_index >= 31) {
-            cerr << "Bad nonce" << endl;
+            cout << "badnonce" << endl;
             return -1;
         }
     }

@@ -324,7 +324,6 @@ int client::read_from_server(char * message, int length)
 int client::get_stdin_128(char file_contents[])
 {
     int read = fread(file_contents, sizeof(char),DATA_SIZE,stdin);
-    //fwrite(file_contents, sizeof(char), read, stdout);
     // set length
     int sub_count = read;
     int index = 0;
@@ -335,14 +334,16 @@ int client::get_stdin_128(char file_contents[])
         file_contents[LENGTH_INDEX+index+1] = 0;
         index++;
     }
+
+    /* Debugging
     cerr << "----" << endl;
     cerr << TOTAL_SIZE << endl;
     cerr << read << endl;
     cerr << LENGTH_INDEX+index << endl;
     cerr << LAST_INDEX << endl;
     file_contents[LENGTH_INDEX+index] = sub_count;
+    */
 
-    //file_contents[LENGTH_INDEX] = read;
     // set last flag
     file_contents[LAST_INDEX] = 0;
     return read;

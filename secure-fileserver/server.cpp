@@ -58,7 +58,6 @@ int server::start_server()
 {
     socklen_t clilen = sizeof(cli_addr);
     while(1) {
-        cerr << "Waiting for client connection..." << endl;
         clientsocket = accept(sockfd, (struct sockaddr *) &cli_addr,&clilen);
         // error check
         if(clientsocket < 0) {
@@ -73,7 +72,6 @@ int server::start_server()
         if(status != -1) {
             process_client_request();
         }
-        cerr << "made it" << endl;
         free(iv);
         free(key);
         close(clientsocket);

@@ -14,7 +14,6 @@ int server::process_client_request()
     char response[length+BLOCK_SIZE];
     length = decrypt_text(enc_text, length, response);
     free(enc_text);
-    cerr << "Response: " << response << endl;
     // process client request
     if(strncmp(response, "read ", strlen("read ")) == 0) {
         process_read_request(response, length);
@@ -23,7 +22,6 @@ int server::process_client_request()
     } else {
         process_bad_request();
     }
-    cerr << "Finished client request" << endl;
     return 0;
 }
 
@@ -50,7 +48,6 @@ int server::process_read_request(char * response, int length)
     memcpy(message, "You have chosen: read", strlen("You have chosen: read"));
     char enc_msg[TOTAL_SIZE+BLOCK_SIZE];
     length = encrypt_text(message, TOTAL_SIZE, enc_msg);
-    cerr << "Sending " << length << endl;
     int status = write_to_client(enc_msg, length, clientsocket);
     if(status < 1)
         return -1;
@@ -61,7 +58,6 @@ int server::process_read_request(char * response, int length)
     // send client failure status or wait for
     // confirmation of success from client
     if(send_status < 0) {
-        cerr << "Sending failure" << endl;
         // if file does not exist
         char success[TOTAL_SIZE];
         memcpy(success, "Error", strlen("Error"));
@@ -126,7 +122,6 @@ int server::process_write_request(char * response, int length)
 
     // send client success status
     if(get_status < 0) {
-        cerr << "Sending fail" << endl;
         char success[TOTAL_SIZE];
         memcpy(success, "FAIL", strlen("FAIL"));
         success[LENGTH_INDEX] = strlen("FAIL");
@@ -137,7 +132,6 @@ int server::process_write_request(char * response, int length)
         if(status < 1)
             return -1;
     } else {
-        cerr << "Sending success" << endl;
         char success[TOTAL_SIZE];
         memcpy(success, "OK", strlen("OK"));
         success[LENGTH_INDEX] = strlen("OK");
@@ -161,6 +155,10 @@ int server::process_write_request(char * response, int length)
  */
 int server::process_bad_request()
 {
+    // print status
+    print_time();
+    printf("status: fail\n");
+
     char message[TOTAL_SIZE];
     memcpy(message, "You have chosen: ERROR", strlen("You have chosen: ERROR"));
     char enc_msg[TOTAL_SIZE+BLOCK_SIZE];
@@ -168,7 +166,6 @@ int server::process_bad_request()
     int status = write_to_client(enc_msg, length, clientsocket);
     if(status < 1)
         return -1;
-    cerr << "Bad protocol message received" << endl;
     return 0;
 }
 

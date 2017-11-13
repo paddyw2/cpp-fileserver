@@ -1,0 +1,140 @@
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.109s
+user	0m0.002s
+sys	0m0.004s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.014s
+user	0m0.003s
+sys	0m0.001s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.014s
+user	0m0.002s
+sys	0m0.002s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.013s
+user	0m0.000s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.013s
+user	0m0.001s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.013s
+user	0m0.001s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.013s
+user	0m0.000s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.014s
+user	0m0.001s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.013s
+user	0m0.001s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+----
+8176
+1026
+8117
+8175
+Enc size: 8192
+Sent: 8192
+(chunk) 8176 8176
+OK
+
+real	0m0.014s
+user	0m0.001s
+sys	0m0.003s

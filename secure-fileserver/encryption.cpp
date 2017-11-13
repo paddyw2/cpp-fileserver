@@ -114,8 +114,8 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
         handle_errors();
   } else {
       // null cipher
-      memcpy(ciphertext, plaintext, plaintext_len);
-      return plaintext_len;
+      if(1 != EVP_EncryptInit_ex(ctx, EVP_enc_null(), NULL, key, iv))
+          handle_errors();
   }
 
 
@@ -138,7 +138,10 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
   /* Clean up */
   EVP_CIPHER_CTX_free(ctx);
 
-  return ciphertext_len;
+  if(protocol == 2)
+      return ciphertext_len + BLOCK_SIZE;
+  else
+      return ciphertext_len;
 }
 
 /*
@@ -172,8 +175,8 @@ int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
         decryption_error();
   } else {
       // null cipher
-      memcpy(plaintext, ciphertext, ciphertext_len);
-      return ciphertext_len;
+      if(1 != EVP_EncryptInit_ex(ctx, EVP_enc_null(), NULL, key, iv))
+          handle_errors();
   }
 
   /* Provide the message to be decrypted, and obtain the plaintext output.
@@ -194,5 +197,8 @@ int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
   /* Clean up */
   EVP_CIPHER_CTX_free(ctx);
 
-  return plaintext_len;
+  if(protocol == 2)
+      return plaintext_len - BLOCK_SIZE;
+  else
+      return plaintext_len;
 }

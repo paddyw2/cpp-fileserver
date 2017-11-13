@@ -4,6 +4,7 @@
 #include <openssl/sha.h>
 #include <string.h>
 
+#define BLOCK_SIZE 16
 class encryption
 {
     public:

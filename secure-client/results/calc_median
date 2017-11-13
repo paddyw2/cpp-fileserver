@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+filename="1KB-read-results.txt"
+
+cat $filename | grep real | cut -c 8-12 | python median.py

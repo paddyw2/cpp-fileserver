@@ -1,0 +1,215 @@
+Resolved to: 0.0.0.0
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m18.169s
+user	0m5.462s
+sys	0m1.489s
+Resolved to: 0.0.0.0
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m6.117s
+user	0m5.585s
+sys	0m1.486s
+Resolved to: 0.0.0.0
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m6.012s
+user	0m5.509s
+sys	0m1.250s
+Resolved to: 0.0.0.0
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+Finally got: 8192 orig: 8192
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m6.041s
+user	0m5.579s
+sys	0m1.407s
+Resolved to: 0.0.0.0
+Finally got: 8192 orig: 8192
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m5.654s
+user	0m5.575s
+sys	0m1.532s
+Resolved to: 0.0.0.0
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m5.612s
+user	0m5.437s
+sys	0m1.574s
+Resolved to: 0.0.0.0
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m5.656s
+user	0m5.645s
+sys	0m1.425s
+Resolved to: 0.0.0.0
+Finally got: 8192 orig: 8192
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m5.560s
+user	0m5.548s
+sys	0m1.081s
+Resolved to: 0.0.0.0
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m5.673s
+user	0m5.420s
+sys	0m1.409s
+Resolved to: 0.0.0.0
+OK
+db045033cd7900d408556d23729e5a9eb844a21d570f7285a097fc98802d5371  -
+
+real	0m5.545s
+user	0m5.527s
+sys	0m1.084s

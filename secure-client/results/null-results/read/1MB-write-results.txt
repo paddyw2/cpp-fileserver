@@ -1,0 +1,70 @@
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.003s
+sys	0m0.002s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.001s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.003s
+sys	0m0.002s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.003s
+sys	0m0.002s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.001s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.001s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.001s
+sys	0m0.003s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.003s
+sys	0m0.002s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.002s
+sys	0m0.002s
+Resolved to: 0.0.0.0
+OK
+cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860  -
+
+real	0m0.051s
+user	0m0.002s
+sys	0m0.002s

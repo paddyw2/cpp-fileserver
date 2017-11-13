@@ -62,7 +62,6 @@ void encryption::encryption_error(void)
 void encryption::decryption_error(void)
 {
     fprintf(stderr, "Error: bad key\n");
-    ERR_print_errors_fp(stderr);
     exit(EXIT_FAILURE);
 }
 
@@ -115,8 +114,8 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
         handle_errors();
   } else {
       // null cipher
-      memcpy(ciphertext, plaintext, plaintext_len);
-      return plaintext_len;
+      if(1 != EVP_EncryptInit_ex(ctx, EVP_enc_null(), NULL, key, iv))
+          handle_errors();
   }
 
 
@@ -139,7 +138,10 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
   /* Clean up */
   EVP_CIPHER_CTX_free(ctx);
 
-  return ciphertext_len;
+  if(protocol == 2)
+      return ciphertext_len + BLOCK_SIZE;
+  else
+      return ciphertext_len;
 }
 
 /*
@@ -165,18 +167,16 @@ int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
 
   if(protocol == 0) {
       // aes256 cipher
-    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
-        fprintf(stderr,"%d\n", ciphertext_len);
+    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
         decryption_error();
-    }
   } else if(protocol == 1) {
       // aes128 cipher
     if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
         decryption_error();
   } else {
       // null cipher
-      memcpy(plaintext, ciphertext, ciphertext_len);
-      return ciphertext_len;
+      if(1 != EVP_EncryptInit_ex(ctx, EVP_enc_null(), NULL, key, iv))
+          handle_errors();
   }
 
   /* Provide the message to be decrypted, and obtain the plaintext output.
@@ -197,5 +197,8 @@ int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
   /* Clean up */
   EVP_CIPHER_CTX_free(ctx);
 
-  return plaintext_len;
+  if(protocol == 2)
+      return plaintext_len - BLOCK_SIZE;
+  else
+      return plaintext_len;
 }

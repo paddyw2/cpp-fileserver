@@ -154,8 +154,6 @@ int client::get_server_response()
 
     // calculate size to read
     int encrypt_size = ENCRYPTED_SIZE;
-    if(strncmp(arg_cipher, "null", strlen("null")) == 0)
-        encrypt_size = TOTAL_SIZE;
 
     int return_size = encrypt_size;
     int counter = 0;

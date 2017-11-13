@@ -131,8 +131,6 @@ int server::get_file(char * filename)
     int status = 0;
     // calculate size to read
     int encrypt_size = ENCRYPTED_SIZE;
-    if(strncmp(cipher, "null", strlen("null")) == 0)
-        encrypt_size = TOTAL_SIZE;
 
     int return_size = encrypt_size;
     int total_written = 0;

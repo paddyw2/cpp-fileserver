@@ -211,6 +211,32 @@ int server::get_file(char * filename)
     return status;
 }
 
+/*
+ * Calculates the length of the data in a
+ * received buffer
+ * It knows where the length data starts
+ * by convention (index x) and increments
+ * the total by the value at x and those
+ * after until a value is less than 125
+ * For example, a length of 256 would be
+ * stored as:
+ *  125, 125, 6
+ *
+ *  So total = 0
+ *  total += 125
+ *  total += 125
+ *  (detects that 6 < 125)
+ *  total += 6
+ *  break
+ *
+ *  Note: The length of the data section
+ *  must be big enough so that the largest
+ *  possible data length can be represented
+ *  this way.
+ *  This is calculated as (data length)/125
+ *  to give the requred data length section
+ *  These are defined in the constants.h file
+ */
 int server::get_data_length(char * data)
 {
     int max_num = 125;

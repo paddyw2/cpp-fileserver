@@ -57,6 +57,11 @@ server::server(int argc, char * argv[])
     cerr << "Using secret key: " << password << endl;
 }
 
+/*
+ * Starts the main server loop that
+ * infinitely waits for and handles
+ * client connections
+ */
 int server::start_server()
 {
     socklen_t clilen = sizeof(cli_addr);
@@ -81,7 +86,6 @@ int server::start_server()
     }
     return 0;
 }
-
 
 /*
  * Writes to client socket and checks
@@ -111,6 +115,10 @@ int server::read_from_client(char * message, int length, int client)
     return error_flag;
 }
 
+/*
+ * Generates IV and SK based on password
+ * and shared random nonce
+ */
 int server::set_key_iv()
 {
     encryption encryptor;
@@ -149,7 +157,10 @@ int server::set_key_iv()
     return 0;
 }
 
-
+/*
+ * Encrypts the plaintext parameter into the ciphertext
+ * buffer, and returns the length of the encrypted data
+ */
 int server::encrypt_text(char * plaintext, int length, char * ciphertext)
 {
     int ciphertext_len;
@@ -163,6 +174,10 @@ int server::encrypt_text(char * plaintext, int length, char * ciphertext)
     return ciphertext_len;
 }
 
+/*
+ * Decrypts the ciphertext parameter into the plaintext
+ * buffer, and returns the length of the decrypted data
+ */
 int server::decrypt_text(char * ciphertext, int length, char * plaintext)
 {
     int plaintext_len;
@@ -176,6 +191,11 @@ int server::decrypt_text(char * ciphertext, int length, char * plaintext)
     return plaintext_len;
 }
 
+/*
+ * Prints the current time in a formatted
+ * way that allows it to be used for
+ * logging purposes
+ */
 int server::print_time()
 {
     time_t timer;
@@ -190,7 +210,6 @@ int server::print_time()
 
     return 0;
 }
-
 
 /*
  * Error handler

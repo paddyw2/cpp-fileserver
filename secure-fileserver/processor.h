@@ -168,5 +168,3 @@ int server::process_bad_request()
         return -1;
     return 0;
 }
-
-

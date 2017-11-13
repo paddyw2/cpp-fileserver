@@ -5,6 +5,7 @@
 #include <string.h>
 
 #define BLOCK_SIZE 16
+
 class encryption
 {
     public:
@@ -20,5 +21,4 @@ class encryption
 
     private:
         int protocol;
-
 };

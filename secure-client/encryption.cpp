@@ -138,6 +138,7 @@ int encryption::encrypt(unsigned char *plaintext, int plaintext_len, unsigned ch
   /* Clean up */
   EVP_CIPHER_CTX_free(ctx);
 
+  // if null cipher, must simulate padding
   if(protocol == 2)
       return ciphertext_len + BLOCK_SIZE;
   else
@@ -197,6 +198,7 @@ int encryption::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
   /* Clean up */
   EVP_CIPHER_CTX_free(ctx);
 
+  // if null cipher, must simulate padding
   if(protocol == 2)
       return plaintext_len - BLOCK_SIZE;
   else

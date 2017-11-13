@@ -45,5 +45,4 @@ class client
         char sent_nonce[NONCE_SIZE+1];
         unsigned char * key;
         unsigned char * iv;
-
 };

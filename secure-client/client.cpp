@@ -230,6 +230,10 @@ int client::send_stdin(char * filename)
     return 0;
 }
 
+/*
+ * Generates IV and SK based on password
+ * and shared random nonce
+ */
 int client::set_key_iv()
 {
     encryption encryptor;
@@ -261,12 +265,7 @@ int client::set_key_iv()
 int client::encrypt_text(char * plaintext, int length, char * ciphertext)
 {
     int ciphertext_len;
-    // aes256
     encryption encryptor(arg_cipher);
-    /* A 256 bit key */
-    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-    /* A 128 bit IV */
-    //unsigned char *iv = (unsigned char *)"0123456789012345";
     ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
     return ciphertext_len;
 }
@@ -277,13 +276,7 @@ int client::encrypt_text(char * plaintext, int length, char * ciphertext)
 int client::decrypt_text(char * ciphertext, int length, char * plaintext)
 {
     int plaintext_len;
-    // aes256
     encryption encryptor(arg_cipher);
-
-    /* A 256 bit key */
-    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-    /* A 128 bit IV */
-    //unsigned char *iv = (unsigned char *)"0123456789012345";
     plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
     return plaintext_len;
 }
@@ -345,6 +338,10 @@ int client::get_stdin_128(char file_contents[])
     return read;
 }
 
+/*
+ * Parses cipher argument and ensures
+ * it is a valid cipher
+ */
 int client::check_cipher()
 {
     if(strncmp(arg_cipher, "aes256", strlen("aes256")) == 0)
@@ -360,6 +357,32 @@ int client::check_cipher()
     return -1;
 }
 
+/*
+ * Calculates the length of the data in a
+ * received buffer
+ * It knows where the length data starts
+ * by convention (index x) and increments
+ * the total by the value at x and those
+ * after until a value is less than 125
+ * For example, a length of 256 would be
+ * stored as:
+ *  125, 125, 6
+ *
+ *  So total = 0
+ *  total += 125
+ *  total += 125
+ *  (detects that 6 < 125)
+ *  total += 6
+ *  break
+ *
+ *  Note: The length of the data section
+ *  must be big enough so that the largest
+ *  possible data length can be represented
+ *  this way.
+ *  This is calculated as (data length)/125
+ *  to give the requred data length section
+ *  These are defined in the constants.h file
+ */
 int client::get_data_length(char * data)
 {
     int max_num = 125;

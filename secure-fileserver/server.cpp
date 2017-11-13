@@ -164,12 +164,7 @@ int server::set_key_iv()
 int server::encrypt_text(char * plaintext, int length, char * ciphertext)
 {
     int ciphertext_len;
-    // aes256
     encryption encryptor(cipher);
-    /* A 256 bit key */
-    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-    /* A 128 bit IV */
-    //unsigned char *iv = (unsigned char *)"0123456789012345";
     ciphertext_len = encryptor.encrypt((unsigned char *)plaintext, length, key, iv, (unsigned char *)ciphertext);
     return ciphertext_len;
 }
@@ -181,12 +176,7 @@ int server::encrypt_text(char * plaintext, int length, char * ciphertext)
 int server::decrypt_text(char * ciphertext, int length, char * plaintext)
 {
     int plaintext_len;
-    // aes256
     encryption encryptor(cipher);
-    /* A 256 bit key */
-    //unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-    /* A 128 bit IV */
-    //unsigned char *iv = (unsigned char *)"0123456789012345";
     plaintext_len = encryptor.decrypt((unsigned char *)ciphertext, length, key, iv, (unsigned char *)plaintext);
     return plaintext_len;
 }

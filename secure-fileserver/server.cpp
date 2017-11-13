@@ -52,6 +52,9 @@ server::server(int argc, char * argv[])
     // start listening for connections on the
     // created socket
     listen(sockfd,5);
+
+    cerr << "Listening on port " << portno << endl;
+    cerr << "Using secret key: " << password << endl;
 }
 
 int server::start_server()

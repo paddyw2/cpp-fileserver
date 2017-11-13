@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for script in "aes256" #"aes128" "null"
+for script in "null" #"aes128" "null"
 do
 
     # write tests, each 10 (times
@@ -8,21 +8,21 @@ do
     echo "1KB write $script:"
     for i in {1..10}
     do
-        (time cat /home/profs/pfederl/Teaching/CPSC526/A4/1KB.bin | ./client write TAR localhost 8080 $script secret123) &>> 1KB-read-results.txt
+        (time cat /home/profs/pfederl/Teaching/CPSC526/A4/1KB.bin | ./client write TAR localhost 8080 $script secret123) &>> 1KB-write-results.txt
         rm ../secure-fileserver/TAR
     done
     # 1MB
     echo "1MB write $script:"
     for i in {1..10}
     do
-        (time cat /home/profs/pfederl/Teaching/CPSC526/A4/1MB.bin | ./client write TAR localhost 8080 $script secret123) &>> 1MB-read-results.txt
+        (time cat /home/profs/pfederl/Teaching/CPSC526/A4/1MB.bin | ./client write TAR localhost 8080 $script secret123) &>> 1MB-write-results.txt
         rm ../secure-fileserver/TAR
     done
     # 1GB
     echo "1GB write $script:"
     for i in {1..10}
     do
-        (time cat /home/profs/pfederl/Teaching/CPSC526/A4/1GB.bin | ./client write TAR localhost 8080 $script secret123) &>> 1GB-read-results.txt
+        (time cat /home/profs/pfederl/Teaching/CPSC526/A4/1GB.bin | ./client write TAR localhost 8080 $script secret123) &>> 1GB-write-results.txt
         rm ../secure-fileserver/TAR
     done
 
@@ -32,7 +32,7 @@ do
     cp /home/profs/pfederl/Teaching/CPSC526/A4/1KB.bin ../secure-fileserver
     for i in {1..10}
     do
-        (time ./client read 1KB.bin localhost 8080 $script secret123 | sha256sum) &>> 1KB-write-results.txt
+        (time ./client read 1KB.bin localhost 8080 $script secret123 | sha256sum) &>> 1KB-read-results.txt
     done
     rm ../secure-fileserver/1KB.bin
     # 1MB
@@ -40,7 +40,7 @@ do
     cp /home/profs/pfederl/Teaching/CPSC526/A4/1MB.bin ../secure-fileserver
     for i in {1..10}
     do
-        (time ./client read 1MB.bin localhost 8080 $script secret123 | sha256sum) &>> 1MB-write-results.txt
+        (time ./client read 1MB.bin localhost 8080 $script secret123 | sha256sum) &>> 1MB-read-results.txt
     done
     rm ../secure-fileserver/1MB.bin
     # 1GB
@@ -48,7 +48,9 @@ do
     cp /home/profs/pfederl/Teaching/CPSC526/A4/1GB.bin ../secure-fileserver
     for i in {1..10}
     do
-        (time ./client read 1GB.bin localhost 8080 $script secret123 | sha256sum)  &>> 1GB-write-results.txt
+        mv ../secure-fileserver/1GB.bin ..
+        mv ../secure-fileserver/../1GB.bin ../secure-fileserver
+        (time ./client read 1GB.bin localhost 8080 $script secret123 | sha256sum)  &>> 1GB-read-results.txt
 
     done
     rm ../secure-fileserver/1GB.bin

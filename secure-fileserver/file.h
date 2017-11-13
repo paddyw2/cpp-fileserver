@@ -74,6 +74,7 @@ int server::send_file(char * filename)
     FILE *fptr;
     fptr = fopen(filename, "r");
     if(!fptr) {
+        return -1;
         printf("File opening failed\n");
         exit(EXIT_FAILURE);
     }
@@ -114,14 +115,22 @@ int server::send_file(char * filename)
  */
 int server::get_file(char * filename)
 {
-
-    remove(filename);
-    // create and open file
     FILE *fptr;
+    fptr = fopen(filename, "w");
+    if(!fptr) {
+        // file not writable
+        print_time();
+        printf("status: fail - file not writable\n");
+        return -1;
+    } else {
+        // close and reopen as append
+        fclose(fptr);
+    }
+
+    // reopen as append
     fptr = fopen(filename, "a");
 
     if(!fptr) {
-        //fptr = fopen(filename, "w");
         if(!fptr) {
             printf("File opening failed\n");
             exit(EXIT_FAILURE);
@@ -154,7 +163,6 @@ int server::get_file(char * filename)
                 subtotal += return_size;
             }
             return_size = subtotal;
-            cerr << "Finally got: " << subtotal << " orig: " << ENCRYPTED_SIZE << endl;
         }
         // decrypt data block
         char plaintext[return_size];

@@ -167,6 +167,7 @@ int server::get_file(char * filename)
             int orig_len = length;
             // write data to file
             length = fwrite(plaintext, sizeof(char), length, fptr);
+            total_written += length;
             //length = write_file(filename, plaintext, length, total_written);
             // check for file writing errors
             if(length < orig_len) {
@@ -231,12 +232,12 @@ int server::get_file(char * filename)
 int server::get_data_length(char * data)
 {
     int max_num = 125;
-    int current = (int)data[LENGTH_INDEX];
+    int current = (int)data[aLENGTH_INDEX];
     int total = current;
     int index = 0;
     while(current == max_num) {
         index++;
-        current = (int)data[LENGTH_INDEX+index];
+        current = (int)data[aLENGTH_INDEX+index];
         total += current;
     }
     return total;

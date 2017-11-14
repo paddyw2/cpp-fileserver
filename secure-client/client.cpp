@@ -153,35 +153,26 @@ int client::get_server_response()
     int status = 0;
 
     // calculate size to read
-    int encrypt_size = ENCRYPTED_SIZE;
+    int encrypt_size = aENCRYPTED_SIZE;
 
     int return_size = encrypt_size;
     int counter = 0;
     while(1) {
         // read response from server
         char * response = (char *)malloc(encrypt_size);
-        return_size = read_from_server(response, encrypt_size);
+        return_size = read_from_server_large(response, encrypt_size);
         if(return_size == 0) {
             cerr << "Error: server disconnected" << endl;
             status = -1;
             break;
-        } else if(return_size != ENCRYPTED_SIZE) {
-            // if full packet not received
-            // fixes bad key error
-            int subtotal = return_size;
-            while(subtotal < ENCRYPTED_SIZE) {
-                return_size = read_from_server(response+subtotal, encrypt_size-subtotal);
-                subtotal += return_size;
-            }
-            return_size = subtotal;
         }
         // decrypt response 
         char plaintext_chunk[return_size];
         int length = decrypt_text(response, return_size, plaintext_chunk);
         // check for error packet
-        if(plaintext_chunk[LAST_INDEX] > 1) {
+        if(plaintext_chunk[aLAST_INDEX] > 1) {
             // print error packet data
-            if(plaintext_chunk[LAST_INDEX] == 2)
+            if(plaintext_chunk[aLAST_INDEX] == 2)
                 cerr << "Error: file not found on server" << endl;
             status = -1;
             break;
@@ -189,7 +180,7 @@ int client::get_server_response()
         // if normal packet, print to stdout
         fwrite(plaintext_chunk, sizeof(char), get_data_length(plaintext_chunk), stdout);
         // if packet was last packet, break loop
-        if(plaintext_chunk[LAST_INDEX] == 1)
+        if(plaintext_chunk[aLAST_INDEX] == 1)
             break;
         free(response);
         counter++;
@@ -205,8 +196,8 @@ int client::get_server_response()
 int client::send_stdin(char * filename)
 {
     int total_written = 0;
-    int chunk_size = TOTAL_SIZE;
-    int flag_size = FLAG_SIZE;
+    int chunk_size = aTOTAL_SIZE;
+    int flag_size = aFLAG_SIZE;
     int read = chunk_size - flag_size;
     while(!feof(stdin)) {
         char * file_contents = (char *) malloc(chunk_size);
@@ -223,8 +214,8 @@ int client::send_stdin(char * filename)
     char enc_chunk[chunk_size+BLOCK_SIZE];
     char end_msg[chunk_size];
     // set last packet flags
-    end_msg[LENGTH_INDEX] = 0;
-    end_msg[LAST_INDEX] = 1;
+    end_msg[aLENGTH_INDEX] = 0;
+    end_msg[aLAST_INDEX] = 1;
     int length = encrypt_text(end_msg, chunk_size, enc_chunk);
     write_to_server(enc_chunk, length);
     return 0;
@@ -311,6 +302,23 @@ int client::read_from_server(char * message, int length)
     return error_flag;
 }
 
+
+int client::read_from_server_large(char * message, int length)
+{
+    int error_flag;
+    error_flag = read(serversocket, message, length); 
+     if (error_flag < 0)
+        error("ERROR reading from socket");
+     while(error_flag < length) {
+         int prev_val = error_flag;
+         error_flag += read(serversocket, message+error_flag, length-error_flag); 
+         if(error_flag < prev_val)
+            error("ERROR reading from socket");
+     }
+     return error_flag;
+}
+
+
 /*
  * Reads data chunks from stdin
  * into file_contents
@@ -319,22 +327,22 @@ int client::read_from_server(char * message, int length)
  */
 int client::get_stdin_128(char file_contents[])
 {
-    int read = fread(file_contents, sizeof(char),DATA_SIZE,stdin);
+    int read = fread(file_contents, sizeof(char),aDATA_SIZE,stdin);
     // set length
     int sub_count = read;
     int index = 0;
     int max_num = 125;
     while(sub_count - max_num > 0) {
         sub_count -= max_num;
-        file_contents[LENGTH_INDEX+index] = 125;
-        file_contents[LENGTH_INDEX+index+1] = 0;
+        file_contents[aLENGTH_INDEX+index] = 125;
+        file_contents[aLENGTH_INDEX+index+1] = 0;
         index++;
     }
 
-    file_contents[LENGTH_INDEX+index] = sub_count;
+    file_contents[aLENGTH_INDEX+index] = sub_count;
 
     // set last flag
-    file_contents[LAST_INDEX] = 0;
+    file_contents[aLAST_INDEX] = 0;
     return read;
 }
 
@@ -386,12 +394,12 @@ int client::check_cipher()
 int client::get_data_length(char * data)
 {
     int max_num = 125;
-    int current = (int)data[LENGTH_INDEX];
+    int current = (int)data[aLENGTH_INDEX];
     int total = current;
     int index = 0;
     while(current == max_num) {
         index++;
-        current = (int)data[LENGTH_INDEX+index];
+        current = (int)data[aLENGTH_INDEX+index];
         total += current;
     }
     return total;

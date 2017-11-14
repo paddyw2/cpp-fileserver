@@ -22,6 +22,7 @@ class client
         int send_cipher_nonce();
         int receive_challenge();
         int read_from_server(char * message, int length);
+        int read_from_server_large(char * message, int length);
         int write_to_server(char * message, int length);
         int get_server_response();
         int check_response_ready();

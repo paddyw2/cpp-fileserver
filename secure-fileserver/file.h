@@ -16,8 +16,8 @@ int server::get_file_128(char filename[], char * contents, int offset, FILE * fp
 
     // calculate the size of chunk to read
     int remaining = filesize - offset;
-    if(remaining > DATA_SIZE) {
-        chunk_size = DATA_SIZE;
+    if(remaining > aDATA_SIZE) {
+        chunk_size = aDATA_SIZE;
     } else {
         chunk_size = remaining;
         last = 1;
@@ -33,12 +33,12 @@ int server::get_file_128(char filename[], char * contents, int offset, FILE * fp
     int max_num = 125;
     while(sub_count - max_num > 0) {
         sub_count -= max_num;
-        contents[LENGTH_INDEX+index] = 125;
-        contents[LENGTH_INDEX+index+1] = 0;
+        contents[aLENGTH_INDEX+index] = 125;
+        contents[aLENGTH_INDEX+index+1] = 0;
         index++;
     }
-    contents[LENGTH_INDEX+index] = sub_count;
-    contents[LAST_INDEX] = last;
+    contents[aLENGTH_INDEX+index] = sub_count;
+    contents[aLAST_INDEX] = last;
 
     // success status
     return status;
@@ -80,22 +80,22 @@ int server::send_file(char * filename)
     }
 
     int status = 0;
-    int chunk_size = TOTAL_SIZE;
+    int chunk_size = aTOTAL_SIZE;
     int file_size = get_filesize(filename);
     // check for file errors
     if(file_size < 0)
         return -1;
     int total_read = 0;
     while(total_read < file_size) {
-        char * file_contents = (char *) malloc(TOTAL_SIZE);
-        bzero(file_contents, TOTAL_SIZE);
+        char * file_contents = (char *) malloc(aTOTAL_SIZE);
+        bzero(file_contents, aTOTAL_SIZE);
         int read = get_file_128(filename, file_contents, total_read, fptr);
         // check for file reading errors
         if(read < 0) {
             status = -1;
             break;
         }
-        char enc_chunk[TOTAL_SIZE + BLOCK_SIZE];
+        char enc_chunk[aTOTAL_SIZE + BLOCK_SIZE];
         int length = encrypt_text(file_contents, chunk_size, enc_chunk);
         int status = write_to_client(enc_chunk, length, clientsocket);
         if(status < 1)
@@ -139,14 +139,14 @@ int server::get_file(char * filename)
 
     int status = 0;
     // calculate size to read
-    int encrypt_size = ENCRYPTED_SIZE;
+    int encrypt_size = aENCRYPTED_SIZE;
 
     int return_size = encrypt_size;
     int total_written = 0;
     while(1) {
         // get block of encrypted data from client
         char * response = (char *)malloc(encrypt_size);
-        return_size = read_from_client(response, encrypt_size, clientsocket);
+        return_size = read_from_client_large(response, encrypt_size, clientsocket);
         // check for read errors
         if(return_size < 1) {
             // print status
@@ -154,15 +154,6 @@ int server::get_file(char * filename)
             printf("status: fail - client disconnected\n");
             status = -1;
             break;
-        } else if(return_size != encrypt_size) {
-            // if full packet not received
-            // fixes bad key error
-            int subtotal = return_size;
-            while(subtotal < ENCRYPTED_SIZE) {
-                return_size = read_from_client(response+subtotal, encrypt_size-subtotal, clientsocket);
-                subtotal += return_size;
-            }
-            return_size = subtotal;
         }
         // decrypt data block
         char plaintext[return_size];
@@ -170,7 +161,7 @@ int server::get_file(char * filename)
 
         // parse to check if it is the last block
         // to be received
-        if(plaintext[LAST_INDEX] == 1) {
+        if(plaintext[aLAST_INDEX] == 1) {
             // last packet detected
             length = get_data_length(plaintext);
             int orig_len = length;

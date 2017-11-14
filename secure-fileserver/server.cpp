@@ -115,6 +115,21 @@ int server::read_from_client(char * message, int length, int client)
     return error_flag;
 }
 
+int server::read_from_client_large(char * message, int length, int client)
+{
+    int error_flag;
+    error_flag = read(client, message, length);
+     if (error_flag < 0)
+        error("ERROR reading from socket");
+     while(error_flag < length) {
+         int prev_val = error_flag;
+         error_flag += read(client, message+error_flag, length-error_flag);
+         if(error_flag < prev_val)
+            error("ERROR reading from socket");
+     }     
+     return error_flag;
+}
+
 /*
  * Generates IV and SK based on password
  * and shared random nonce
